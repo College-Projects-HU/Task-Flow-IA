@@ -1,0 +1,205 @@
+/* Register.css */
+
+.register-card {
+    width: 440px;
+    max-width: 90%;
+    padding-bottom: 30px;
+}
+
+/* Progress Bar */
+.progress-container {
+    margin: 20px 0 30px;
+    position: relative;
+}
+
+.progress-bar {
+    height: 4px;
+    background: linear-gradient(90deg, #4caf50, #8bc34a);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.progress-step {
+    width: 30px;
+    height: 30px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.progress-step.active {
+    background: #4caf50;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+/* Step Content */
+.step-content {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Error Messages */
+.error {
+    display: block;
+    color: #ff6b6b;
+    font-size: 11px;
+    margin-top: 5px;
+    text-align: left;
+    padding-left: 5px;
+}
+
+/* Role Selection */
+.role-section {
+    margin: 15px 0;
+    text-align: left;
+}
+
+.role-label {
+    color: #ddd;
+    font-size: 13px;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.role-options {
+    display: flex;
+    gap: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.role-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.role-option input {
+    width: auto;
+    cursor: pointer;
+}
+
+/* File Input */
+.file-input {
+    position: relative;
+}
+
+.file-input input[type="file"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 100%;
+}
+
+.file-placeholder {
+    color: #ccc;
+    font-size: 14px;
+}
+
+/* Info Box */
+.info-box {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 12px;
+    margin-top: 15px;
+    text-align: left;
+}
+
+.info-box p {
+    color: #ffcc00;
+    font-size: 12px;
+    margin: 5px 0;
+}
+
+/* Navigation Buttons */
+.navigation-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.btn-primary,
+.btn-secondary {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-primary {
+    background: rgba(255, 255, 255, 0.425);
+    backdrop-filter: blur(15px);
+    color: rgb(40, 17, 170);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(15px);
+    color: white;
+}
+
+.btn-primary:hover,
+.btn-secondary:hover {
+    transform: scale(1.02);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Switch Link */
+.switch {
+    margin-top: 20px;
+    font-size: 13px;
+    color: #eee;
+}
+
+.switch a {
+    color: #fff;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .register-card {
+        width: 95%;
+        padding: 0px 15px 25px;
+    }
+
+    .role-options {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .navigation-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
