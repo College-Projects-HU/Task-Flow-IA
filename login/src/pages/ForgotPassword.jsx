@@ -219,10 +219,7 @@ function ForgotPassword() {
         </div>
 
         {/* Header */}
-        <div className="logo-icon">
-          <span className="icon">🔐</span>
-        </div>
-
+      
         <h2>Reset Password</h2>
         <p className="subtitle">
           {step === 1 && "Enter your email to receive a verification code"}
@@ -234,7 +231,6 @@ function ForgotPassword() {
         {step === 1 && (
           <form onSubmit={handleSendEmail}>
             <div className="inputBox">
-              <span className="input-icon">📧</span>
               <input
                 type="email"
                 name="email"
@@ -255,7 +251,6 @@ function ForgotPassword() {
         {step === 2 && (
           <form onSubmit={handleVerifyOTP}>
             <div className="inputBox">
-              <span className="input-icon">🔢</span>
               <input
                 type="text"
                 name="otp"
@@ -287,7 +282,6 @@ function ForgotPassword() {
         {step === 3 && (
           <form onSubmit={handleResetPassword}>
             <div className="inputBox">
-              <span className="input-icon">🔒</span>
               <input
                 type={showPassword ? "text" : "password"}
                 name="newPassword"
@@ -305,7 +299,6 @@ function ForgotPassword() {
             {errors.newPassword && <span className="error">{errors.newPassword}</span>}
 
             <div className="inputBox">
-              <span className="input-icon">🔒</span>
               <input
                 type={showPassword ? "text" : "password"}
                 name="confirmPassword"

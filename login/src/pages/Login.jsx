@@ -76,17 +76,13 @@ function Login() {
       <div className="card login-card">
         
         {/* Logo or Icon */}
-        <div className="logo-icon">
-          <span className="icon">📋</span>
-        </div>
-
+     
         <h2>Welcome Back</h2>
         <p className="subtitle">Login to your TaskFlow account</p>
 
         <form onSubmit={handleSubmit}>
           {/* Email Field */}
           <div className="inputBox">
-            <span className="input-icon">📧</span>
             <input
               type="email"
               name="email"
@@ -99,7 +95,6 @@ function Login() {
 
           {/* Password Field with Show/Hide */}
           <div className="inputBox">
-            <span className="input-icon">🔒</span>
             <input
               type={showPassword ? "text" : "password"}
               name="password"
