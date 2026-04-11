@@ -1,0 +1,22 @@
+# Editor directories and files
+.vscode
+.idea
+.vs
+.DS_Store
+*.suo
+*.user
+
+# .NET core
+bin/
+obj/
+
+# Local configuration files
+appsettings.Development.json
+.env
+.env.*
+
+# SQLite databases
+*.db
+*.db-shm
+*.db-wal
+taskflow.db
