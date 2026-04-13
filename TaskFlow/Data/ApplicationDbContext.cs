@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TaskFlow.Models;
 
 namespace TaskFlow.Data
@@ -26,7 +26,7 @@ namespace TaskFlow.Data
                     Id = 1,
                     FullName = "Admin",
                     Email = "admin@taskflow.com",
-                    PasswordHash = "123456", // مؤقت
+                    PasswordHash = "123456",
                     Role = Role.Admin,
                     IsApproved = true,
                     CreatedAt = new DateTime(2026, 1, 1)
