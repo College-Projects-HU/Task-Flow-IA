@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create an Axios instance with a generic base URL
 const api = axios.create({
-  baseURL: 'http://localhost:5173/api', // Change this to your actual backend URL later
+  baseURL: 'http://localhost:5218/api',
 });
 
 // Request interceptor to automatically attach the auth token to every request
