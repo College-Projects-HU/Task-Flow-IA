@@ -1,0 +1,267 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+
+function Register() {
+  const [step, setStep] = useState(1);
+
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+    role: "member",
+    jobTitle: "",
+    profilePicture: null,
+  });
+
+  const [errors, setErrors] = useState({});
+
+  const handleChange = (e) => {
+    const { name, value, type, files } = e.target;
+
+    setFormData({
+      ...formData,
+      [name]: type === "file" ? files[0] : value,
+    });
+  };
+
+  const validateStep = () => {
+    const newErrors = {};
+
+    if (step === 1) {
+      if (!formData.firstName) newErrors.firstName = "Required";
+      if (!formData.lastName) newErrors.lastName = "Required";
+      if (!formData.email) newErrors.email = "Required";
+      if (!formData.phone) newErrors.phone = "Required";
+    }
+
+    if (step === 2) {
+      if (!formData.password) newErrors.password = "Required";
+      if (formData.password !== formData.confirmPassword)
+        newErrors.confirmPassword = "Passwords not match";
+    }
+
+    if (step === 3) {
+      if (!formData.jobTitle) newErrors.jobTitle = "Required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const nextStep = () => {
+    if (validateStep()) setStep(step + 1);
+  };
+
+  const prevStep = () => setStep(step - 1);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log(formData);
+    alert("Registered Successfully 🎉");
+  };
+
+  const progress = (step / 3) * 100;
+
+  // ================= STYLE OBJECTS =================
+  const styles = {
+    container: {
+      height: "100vh",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      background: "linear-gradient(135deg, #8c8ca5, #0749ac)",
+    },
+
+    card: {
+      width: "440px",
+      padding: "25px",
+      borderRadius: "15px",
+      background: "rgba(137, 137, 155, 0.55)",
+      color: "white",
+      boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+    },
+
+    progressBar: {
+      height: "6px",
+      background: "rgba(255,255,255,0.2)",
+      borderRadius: "10px",
+      overflow: "hidden",
+      marginBottom: "10px",
+    },
+
+    progressFill: {
+      height: "100%",
+      width: `${progress}%`,
+      background: "linear-gradient(90deg, #3787ff, #001a8d)",
+      transition: "0.3s",
+    },
+
+    steps: {
+      display: "flex",
+      justifyContent: "space-between",
+      marginBottom: "15px",
+    },
+
+    step: (active) => ({
+      width: "28px",
+      height: "28px",
+      borderRadius: "50%",
+      background: active ? "#033092" : "rgba(255,255,255,0.2)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: "12px",
+      fontWeight: "bold",
+    }),
+
+    input: {
+      width: "100%",
+      padding: "10px",
+      marginBottom: "5px",
+      borderRadius: "8px",
+      border: "none",
+      outline: "none",
+    },
+
+    error: {
+      color: "#ff6b6b",
+      fontSize: "12px",
+      marginBottom: "8px",
+      display: "block",
+    },
+
+    buttons: {
+      display: "flex",
+      gap: "10px",
+      marginTop: "15px",
+
+    },
+
+    btn: {
+      flex: 1,
+      padding: "10px",
+      borderRadius: "8px",
+      border: "none",
+      cursor: "pointer",
+      fontWeight: "bold",
+    },
+     link: {
+      color: "#002c5e",
+      textDecoration: "none",
+      fontWeight: "bold",
+    },
+  };
+
+  return (
+    <div style={styles.container}>
+      <div style={styles.card}>
+
+        {/* Progress */}
+        <div style={styles.progressBar}>
+          <div style={styles.progressFill}></div>
+        </div>
+
+        <div style={styles.steps}>
+          <div style={styles.step(step >= 1)}>1</div>
+          <div style={styles.step(step >= 2)}>2</div>
+          <div style={styles.step(step >= 3)}>3</div>
+        </div>
+
+        <h3 style={{ textAlign: "center" }}>Create Account</h3>
+        <p style={{ textAlign: "center", opacity: 0.7 }}>Step {step}/3</p>
+
+        <form onSubmit={handleSubmit}>
+
+          {/* STEP 1 */}
+          {step === 1 && (
+            <>
+              <input style={styles.input} name="firstName" placeholder="First Name" onChange={handleChange} />
+              <span style={styles.error}>{errors.firstName}</span>
+
+              <input style={styles.input} name="lastName" placeholder="Last Name" onChange={handleChange} />
+              <span style={styles.error}>{errors.lastName}</span>
+
+              <input style={styles.input} name="email" placeholder="Email" onChange={handleChange} />
+              <span style={styles.error}>{errors.email}</span>
+
+              <input style={styles.input} name="phone" placeholder="Phone" onChange={handleChange} />
+              <span style={styles.error}>{errors.phone}</span>
+            </>
+          )}
+
+          {/* STEP 2 */}
+          {step === 2 && (
+            <>
+              <input style={styles.input} type="password" name="password" placeholder="Password" onChange={handleChange} />
+              <span style={styles.error}>{errors.password}</span>
+
+              <input style={styles.input} type="password" name="confirmPassword" placeholder="Confirm Password" onChange={handleChange} />
+              <span style={styles.error}>{errors.confirmPassword}</span>
+            </>
+          )}
+
+          {/* STEP 3 */}
+          {step === 3 && (
+            <>
+              <input style={styles.input} name="jobTitle" placeholder="Job Title" onChange={handleChange} />
+              <span style={styles.error}>{errors.jobTitle}</span>
+
+              <input style={styles.input} type="file" name="profilePicture" onChange={handleChange} />
+
+              <div style={{ marginTop: "10px", color: "#f8f8f8" }}>
+                Admin will review your account
+              </div>
+            </>
+          )}
+
+          {/* BUTTONS */}
+          <div style={styles.buttons}>
+            {step > 1 && (
+              <button
+                type="button"
+                style={{ ...styles.btn, background: "#888", color: "white" }}
+                onClick={prevStep}
+              >
+                Back
+              </button>
+            )}
+
+            {step < 3 ? (
+            <button
+              type="button"
+              style={{
+                  ...styles.btn,
+                  background: "linear-gradient(90deg, #0f6bb6, #0349a5)",
+                  color: "white"
+                  }}
+              onClick={nextStep}
+            >
+                Next
+            </button>
+            ) : (
+              <button
+                type="submit"
+                style={{ ...styles.btn, background: "#2196f3", color: "white" }}
+              >
+                Register
+              </button>
+            )}
+          </div>
+
+        </form>
+
+        <p style={{ textAlign: "center", marginTop: "15px" }}>
+          Already have account?  <Link to="/" style={styles.link}>
+  Login
+</Link>
+        </p>
+
+      </div>
+    </div>
+  );
+}
+
+export default Register;
