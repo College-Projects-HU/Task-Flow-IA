@@ -4,7 +4,7 @@ using TaskFlow.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // 2. إعداد الـ CORS عشان الفرونت اند
 builder.Services.AddCors(options =>
