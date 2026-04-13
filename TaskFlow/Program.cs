@@ -1,29 +1,61 @@
 using Microsoft.EntityFrameworkCore;
 using TaskFlow.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using TaskFlow.Interfaces;
+using TaskFlow.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 1. ربط قاعدة البيانات (SQLite)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2. إعداد الـ CORS عشان الفرونت اند
+// 2. إعدادات الـ JWT (شغل دعاء M3)
+// تأكدي أن "Key" في appsettings.json لا يقل عن 32 حرف
+var jwtKey = builder.Configuration["Jwt:Key"];
+var keyBytes = Encoding.ASCII.GetBytes(jwtKey);
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(keyBytes)
+    };
+});
+
+// 3. إعداد الـ CORS عشان الفرونت اند (React)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("http://localhost:5173") // تأكدي من بورت الـ Vite بتاعك
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
 
-// إعدادات الـ Swagger
+// 4. تسجيل الخدمات (Dependency Injection)
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
+// إعدادات الـ Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -32,10 +64,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// الترتيب هنا "حياة أو موت" للمشروع:
 app.UseCors("ReactPolicy");
 
-app.UseAuthentication();   // مهم للمستقبل
-app.UseAuthorization();
+app.UseAuthentication(); // 1. التحقق من الهوية (مين اليوزر؟)
+app.UseAuthorization();  // 2. التحقق من الصلاحيات (مسموح له يعمل إيه؟)
 
 app.MapControllers();
 
