@@ -1,284 +1,264 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import "./Register.css";
-import "../App.css";
 
 function Register() {
   const [step, setStep] = useState(1);
+
   const [formData, setFormData] = useState({
-    // Step 1
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
-    // Step 2
     password: "",
     confirmPassword: "",
-    role: "member", // 'manager' or 'member'
-    // Step 3
+    role: "member",
     jobTitle: "",
     profilePicture: null,
   });
 
   const [errors, setErrors] = useState({});
 
-  // Handle input change
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
+
     setFormData({
       ...formData,
       [name]: type === "file" ? files[0] : value,
     });
-    // Clear error for this field
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: "" });
-    }
   };
 
-  // Validate current step
   const validateStep = () => {
     const newErrors = {};
 
     if (step === 1) {
-      if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
-      if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
-      if (!formData.email.trim()) {
-        newErrors.email = "Email is required";
-      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-        newErrors.email = "Email is invalid";
-      }
-      if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
+      if (!formData.firstName) newErrors.firstName = "Required";
+      if (!formData.lastName) newErrors.lastName = "Required";
+      if (!formData.email) newErrors.email = "Required";
+      if (!formData.phone) newErrors.phone = "Required";
     }
 
     if (step === 2) {
-      if (!formData.password) {
-        newErrors.password = "Password is required";
-      } else if (formData.password.length < 6) {
-        newErrors.password = "Password must be at least 6 characters";
-      }
-      if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = "Passwords do not match";
-      }
-      if (!formData.role) newErrors.role = "Please select a role";
+      if (!formData.password) newErrors.password = "Required";
+      if (formData.password !== formData.confirmPassword)
+        newErrors.confirmPassword = "Passwords not match";
     }
 
     if (step === 3) {
-      if (!formData.jobTitle.trim()) newErrors.jobTitle = "Job title is required";
+      if (!formData.jobTitle) newErrors.jobTitle = "Required";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Next step handler
   const nextStep = () => {
-    if (validateStep()) {
-      setStep(step + 1);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+    if (validateStep()) setStep(step + 1);
   };
 
-  // Previous step handler
-  const prevStep = () => {
-    setStep(step - 1);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const prevStep = () => setStep(step - 1);
 
-  // Final submit handler
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (validateStep()) {
-      console.log("Form submitted:", formData);
-      // Here you will send data to backend
-      alert("Registration submitted! Waiting for admin approval.");
-    }
+    console.log(formData);
+    alert("Registered Successfully 🎉");
   };
 
-  // Progress percentage
-  const progressPercentage = (step / 3) * 100;
+  const progress = (step / 3) * 100;
+
+  // ================= STYLE OBJECTS =================
+  const styles = {
+    container: {
+      height: "100vh",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      background: "linear-gradient(135deg, #8c8ca5, #0749ac)",
+    },
+
+    card: {
+      width: "440px",
+      padding: "25px",
+      borderRadius: "15px",
+      background: "rgba(137, 137, 155, 0.55)",
+      color: "white",
+      boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+    },
+
+    progressBar: {
+      height: "6px",
+      background: "rgba(255,255,255,0.2)",
+      borderRadius: "10px",
+      overflow: "hidden",
+      marginBottom: "10px",
+    },
+
+    progressFill: {
+      height: "100%",
+      width: `${progress}%`,
+      background: "linear-gradient(90deg, #3787ff, #001a8d)",
+      transition: "0.3s",
+    },
+
+    steps: {
+      display: "flex",
+      justifyContent: "space-between",
+      marginBottom: "15px",
+    },
+
+    step: (active) => ({
+      width: "28px",
+      height: "28px",
+      borderRadius: "50%",
+      background: active ? "#033092" : "rgba(255,255,255,0.2)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: "12px",
+      fontWeight: "bold",
+    }),
+
+    input: {
+      width: "100%",
+      padding: "10px",
+      marginBottom: "5px",
+      borderRadius: "8px",
+      border: "none",
+      outline: "none",
+    },
+
+    error: {
+      color: "#ff6b6b",
+      fontSize: "12px",
+      marginBottom: "8px",
+      display: "block",
+    },
+
+    buttons: {
+      display: "flex",
+      gap: "10px",
+      marginTop: "15px",
+
+    },
+
+    btn: {
+      flex: 1,
+      padding: "10px",
+      borderRadius: "8px",
+      border: "none",
+      cursor: "pointer",
+      fontWeight: "bold",
+    },
+     link: {
+      color: "#002c5e",
+      textDecoration: "none",
+      fontWeight: "bold",
+    },
+  };
 
   return (
-    <div className="container">
-      <div className="card register-card">
-        
-        {/* Progress Bar */}
-        <div className="progress-container">
-          <div className="progress-bar" style={{ width: `${progressPercentage}%` }}></div>
-          <div className="progress-steps">
-            <div className={`progress-step ${step >= 1 ? "active" : ""}`}>1</div>
-            <div className={`progress-step ${step >= 2 ? "active" : ""}`}>2</div>
-            <div className={`progress-step ${step >= 3 ? "active" : ""}`}>3</div>
-          </div>
+    <div style={styles.container}>
+      <div style={styles.card}>
+
+        {/* Progress */}
+        <div style={styles.progressBar}>
+          <div style={styles.progressFill}></div>
         </div>
 
-        <h2>Create Account</h2>
-        <p className="subtitle">
-          {step === 1 && "Step 1/3: Personal Information"}
-          {step === 2 && "Step 2/3: Account Security"}
-          {step === 3 && "Step 3/3: Professional Details"}
-        </p>
+        <div style={styles.steps}>
+          <div style={styles.step(step >= 1)}>1</div>
+          <div style={styles.step(step >= 2)}>2</div>
+          <div style={styles.step(step >= 3)}>3</div>
+        </div>
+
+        <h3 style={{ textAlign: "center" }}>Create Account</h3>
+        <p style={{ textAlign: "center", opacity: 0.7 }}>Step {step}/3</p>
 
         <form onSubmit={handleSubmit}>
-          {/* Step 1 */}
+
+          {/* STEP 1 */}
           {step === 1 && (
-            <div className="step-content">
-              <div className="row">
-                <div className="inputBox">
-                  <input
-                    type="text"
-                    name="firstName"
-                    placeholder="First Name"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                  />
-                  {errors.firstName && <span className="error">{errors.firstName}</span>}
-                </div>
-                <div className="inputBox">
-                  <input
-                    type="text"
-                    name="lastName"
-                    placeholder="Last Name"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                  />
-                  {errors.lastName && <span className="error">{errors.lastName}</span>}
-                </div>
-              </div>
+            <>
+              <input style={styles.input} name="firstName" placeholder="First Name" onChange={handleChange} />
+              <span style={styles.error}>{errors.firstName}</span>
 
-              <div className="inputBox">
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email Address"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-                {errors.email && <span className="error">{errors.email}</span>}
-              </div>
+              <input style={styles.input} name="lastName" placeholder="Last Name" onChange={handleChange} />
+              <span style={styles.error}>{errors.lastName}</span>
 
-              <div className="inputBox">
-                <input
-                  type="tel"
-                  name="phone"
-                  placeholder="Phone Number"
-                  value={formData.phone}
-                  onChange={handleChange}
-                />
-                {errors.phone && <span className="error">{errors.phone}</span>}
-              </div>
-            </div>
+              <input style={styles.input} name="email" placeholder="Email" onChange={handleChange} />
+              <span style={styles.error}>{errors.email}</span>
+
+              <input style={styles.input} name="phone" placeholder="Phone" onChange={handleChange} />
+              <span style={styles.error}>{errors.phone}</span>
+            </>
           )}
 
-          {/* Step 2 */}
+          {/* STEP 2 */}
           {step === 2 && (
-            <div className="step-content">
-              <div className="inputBox">
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-                {errors.password && <span className="error">{errors.password}</span>}
-              </div>
+            <>
+              <input style={styles.input} type="password" name="password" placeholder="Password" onChange={handleChange} />
+              <span style={styles.error}>{errors.password}</span>
 
-              <div className="inputBox">
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  placeholder="Confirm Password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                />
-                {errors.confirmPassword && <span className="error">{errors.confirmPassword}</span>}
-              </div>
-
-              <div className="role-section">
-                <p className="role-label">Register as:</p>
-                <div className="role-options">
-                  <label className="role-option">
-                    <input
-                      type="radio"
-                      name="role"
-                      value="manager"
-                      checked={formData.role === "manager"}
-                      onChange={handleChange}
-                    />
-                    <span>📋 Project Manager</span>
-                  </label>
-                  <label className="role-option">
-                    <input
-                      type="radio"
-                      name="role"
-                      value="member"
-                      checked={formData.role === "member"}
-                      onChange={handleChange}
-                    />
-                    <span>👤 Team Member</span>
-                  </label>
-                </div>
-                {errors.role && <span className="error">{errors.role}</span>}
-              </div>
-            </div>
+              <input style={styles.input} type="password" name="confirmPassword" placeholder="Confirm Password" onChange={handleChange} />
+              <span style={styles.error}>{errors.confirmPassword}</span>
+            </>
           )}
 
-          {/* Step 3 */}
+          {/* STEP 3 */}
           {step === 3 && (
-            <div className="step-content">
-              <div className="inputBox">
-                <input
-                  type="text"
-                  name="jobTitle"
-                  placeholder="Job Title (e.g., Frontend Developer)"
-                  value={formData.jobTitle}
-                  onChange={handleChange}
-                />
-                {errors.jobTitle && <span className="error">{errors.jobTitle}</span>}
-              </div>
+            <>
+              <input style={styles.input} name="jobTitle" placeholder="Job Title" onChange={handleChange} />
+              <span style={styles.error}>{errors.jobTitle}</span>
 
-              <div className="inputBox file-input">
-                <input
-                  type="file"
-                  name="profilePicture"
-                  accept="image/*"
-                  onChange={handleChange}
-                />
-                <span className="file-placeholder">
-                  {formData.profilePicture ? formData.profilePicture.name : "Profile Picture (Optional)"}
-                </span>
-              </div>
+              <input style={styles.input} type="file" name="profilePicture" onChange={handleChange} />
 
-              <div className="info-box">
-                <p>📌 After registration, an admin will review your account.</p>
-                <p>✅ You will receive a notification when approved.</p>
+              <div style={{ marginTop: "10px", color: "#f8f8f8" }}>
+                Admin will review your account
               </div>
-            </div>
+            </>
           )}
 
-          {/* Navigation Buttons */}
-          <div className="navigation-buttons">
+          {/* BUTTONS */}
+          <div style={styles.buttons}>
             {step > 1 && (
-              <button type="button" className="btn-secondary" onClick={prevStep}>
-                ← Back
+              <button
+                type="button"
+                style={{ ...styles.btn, background: "#888", color: "white" }}
+                onClick={prevStep}
+              >
+                Back
               </button>
             )}
-            
+
             {step < 3 ? (
-              <button type="button" className="btn-primary" onClick={nextStep}>
-                Next →
-              </button>
+            <button
+              type="button"
+              style={{
+                  ...styles.btn,
+                  background: "linear-gradient(90deg, #0f6bb6, #0349a5)",
+                  color: "white"
+                  }}
+              onClick={nextStep}
+            >
+                Next
+            </button>
             ) : (
-              <button type="submit" className="btn-primary">
-                Register ✨
+              <button
+                type="submit"
+                style={{ ...styles.btn, background: "#2196f3", color: "white" }}
+              >
+                Register
               </button>
             )}
           </div>
+
         </form>
 
-        <p className="switch">
-          Already have an account? <Link to="/">Login</Link>
+        <p style={{ textAlign: "center", marginTop: "15px" }}>
+          Already have account?  <Link to="/" style={styles.link}>
+  Login
+</Link>
         </p>
+
       </div>
     </div>
   );
