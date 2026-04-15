@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import api from "../services/api";
 
 function Register() {
   const [step, setStep] = useState(1);
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -11,12 +13,13 @@ function Register() {
     phone: "",
     password: "",
     confirmPassword: "",
-    role: "member",
+    role: "memeber",
     jobTitle: "",
     profilePicture: null,
   });
 
   const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -57,10 +60,31 @@ function Register() {
 
   const prevStep = () => setStep(step - 1);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
-    alert("Registered Successfully 🎉");
+    if (!validateStep()) return;
+
+    setIsLoading(true);
+    setErrors({});
+
+    try {
+      // Send the properties expected by the backend DTO
+      await api.post("/Auth/register", {
+        fullName: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        password: formData.password,
+        role: 2 // 0=Admin, 1=ProjectManager, 2=Member
+      });
+      alert("Registered Successfully 🎉");
+      navigate("/"); // Redirect to Login page
+    } catch (err) {
+      setErrors({
+        ...errors,
+        jobTitle: err.response?.data?.message || err.response?.data || "Registration failed."
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const progress = (step / 3) * 100;

@@ -81,8 +81,19 @@ namespace TaskFlow.Services
         public async Task<string> LoginAsync(LoginDto dto){
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
 
-            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+            if (user == null)
                 return "Invalid credentials";
+
+            try
+            {
+                if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+                    return "Invalid credentials";
+            }
+            catch (BCrypt.Net.SaltParseException)
+            {
+                // لو في اي مشكلة بنعرض رسالة صغيرة بدل ما البرنامج كله يضرب في وش اليوزر
+                return "Invalid credentials";
+            }
 
             // لو كل حاجة صح، بنرجع الـ Token
             return GenerateJwtToken(user);

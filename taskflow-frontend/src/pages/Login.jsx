@@ -1,7 +1,19 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import api from "../services/api";
 
 function Login() {
+  const navigate = useNavigate();
+
+  // Check if user already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      // User is already logged in, redirect
+      navigate("/dashboard"); 
+    }
+  }, [navigate]);
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -11,7 +23,7 @@ function Login() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
+  
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -31,17 +43,32 @@ function Login() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validate()) return;
 
     setIsLoading(true);
+    setErrors({});
 
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const response = await api.post("/Auth/login", {
+        email: formData.email,
+        password: formData.password,
+      });
+      // Store token
+      localStorage.setItem("token", response.data.message);
       alert("Login Success 🎉");
-    }, 1000);
+      // Redirect to a secure page, e.g., dashboard
+      navigate("/dashboard");
+    } catch (err) {
+      setErrors({ 
+        ...errors, 
+        password: err.response?.data || "Login failed. Please check your credentials." 
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // ===== SAME REGISTER COLORS =====
