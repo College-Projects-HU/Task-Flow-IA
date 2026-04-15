@@ -68,7 +68,7 @@ namespace TaskFlow.Services
                 PasswordHash = passwordHash,
                 Role = dto.Role,
                 CreatedAt = DateTime.UtcNow,
-                IsApproved = false // تقدري تخليها false لو محتاجة موافقة الأدمن
+                IsApproved = dto.Role == Role.Member ? true : false // الميمبر بياخد اوتو ابروف، المانجر بيحتاج ادمن بعمله ابروف
             };
 
             _context.Users.Add(user);
@@ -83,6 +83,12 @@ namespace TaskFlow.Services
 
             if (user == null)
                 return "Invalid credentials";
+                
+            // اتاكد ان البروجكت مانجر معموله ابروف
+            if (!user.IsApproved)
+            {
+                return "Your account is pending admin approval.";
+            }
 
             try
             {

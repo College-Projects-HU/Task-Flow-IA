@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useState, useEffect } from "react";
+import { jwtDecode } from "jwt-decode";
 
 export const AuthContext = createContext();
 
@@ -12,8 +13,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (token) {
       try {
-        const payloadStr = atob(token.split(".")[1]);
-        const payload = JSON.parse(payloadStr);
+        const payload = jwtDecode(token);
 
         // Map ASP.NET Core Claims to simplified properties
         const role = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || payload.role;
