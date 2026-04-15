@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { AuthContext } from "../context/AuthContext";
 
 function Login() {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext); // Access global login fn
 
   // Check if user already logged in
   useEffect(() => {
@@ -56,10 +58,10 @@ function Login() {
         email: formData.email,
         password: formData.password,
       });
-      // Store token
-      localStorage.setItem("token", response.data.message);
+      // Store token globally via AuthContext
+      login(response.data.message);
+      
       alert("Login Success 🎉");
-      // Redirect to a secure page, e.g., dashboard
       navigate("/dashboard");
     } catch (err) {
       setErrors({ 
