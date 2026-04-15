@@ -13,7 +13,7 @@ function Register() {
     phone: "",
     password: "",
     confirmPassword: "",
-    role: "memeber",
+    role: 2,
     jobTitle: "",
     profilePicture: null,
   });
@@ -32,18 +32,31 @@ function Register() {
 
   const validateStep = () => {
     const newErrors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (step === 1) {
       if (!formData.firstName) newErrors.firstName = "Required";
       if (!formData.lastName) newErrors.lastName = "Required";
-      if (!formData.email) newErrors.email = "Required";
+      
+      if (!formData.email) {
+        newErrors.email = "Required";
+      } else if (!emailRegex.test(formData.email)) {
+        newErrors.email = "Invalid email format";
+      }
+
       if (!formData.phone) newErrors.phone = "Required";
     }
 
     if (step === 2) {
-      if (!formData.password) newErrors.password = "Required";
-      if (formData.password !== formData.confirmPassword)
-        newErrors.confirmPassword = "Passwords not match";
+      if (!formData.password) {
+        newErrors.password = "Required";
+      } else if (formData.password.length < 6) {
+        newErrors.password = "Password must be at least 6 characters";
+      }
+      
+      if (formData.password !== formData.confirmPassword) {
+        newErrors.confirmPassword = "Passwords do not match";
+      }
     }
 
     if (step === 3) {
@@ -73,7 +86,7 @@ function Register() {
         fullName: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
         password: formData.password,
-        role: 2 // 0=Admin, 1=ProjectManager, 2=Member
+        role: parseInt(formData.role, 10) // dynamically use the selected role
       });
       alert("Registered Successfully 🎉");
       navigate("/"); // Redirect to Login page
@@ -233,10 +246,37 @@ function Register() {
               <input style={styles.input} name="jobTitle" placeholder="Job Title" onChange={handleChange} />
               <span style={styles.error}>{errors.jobTitle}</span>
 
+              {/* ROLE SELECTION (RADIO BUTTONS) */}
+              <div style={{ marginBottom: "15px", display: "flex", gap: "15px", alignItems: "center" }}>
+                <span style={{ fontWeight: "bold" }}>Join as:</span>
+                <label style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                  <input
+                    type="radio"
+                    name="role"
+                    value={2} // Enum for Member
+                    checked={parseInt(formData.role, 10) === 2}
+                    onChange={handleChange}
+                  />
+                  Member
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                  <input
+                    type="radio"
+                    name="role"
+                    value={1} // Enum for ProjectManager
+                    checked={parseInt(formData.role, 10) === 1}
+                    onChange={handleChange}
+                  />
+                  Project Manager
+                </label>
+              </div>
+
               <input style={styles.input} type="file" name="profilePicture" onChange={handleChange} />
 
-              <div style={{ marginTop: "10px", color: "#f8f8f8" }}>
-                Admin will review your account
+              <div style={{ marginTop: "10px", color: "#f8f8f8", minHeight: "20px", fontSize: "14px" }}>
+                {parseInt(formData.role, 10) === 1 
+                  ? "Admin will need to review and approve your account." 
+                  : "You can log in immediately after registering."}
               </div>
             </>
           )}
