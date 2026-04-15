@@ -9,8 +9,14 @@ export default function RoleRoute({ children, allowedRoles }) {
     return <Navigate to="/login" replace />;
   }
 
+  // If token exists but user isn't populated yet (e.g. decoding state), show nothing until ready
+  if (!user) {
+    return null; // Or return a <div className="spinner-border"></div>
+  }
+
   // Check if current user has the required role
-  if (user && allowedRoles.includes(user.role)) {
+  // We convert both to string so "Admin" tightly matches "Admin"
+  if (allowedRoles.some(r => String(r) === String(user.role))) {
     return children;
   }
 
