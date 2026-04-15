@@ -1,7 +1,21 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import api from "../services/api";
+import { AuthContext } from "../context/AuthContext";
 
 function Login() {
+  const navigate = useNavigate();
+  const { login } = useContext(AuthContext); // Access global login fn
+
+  // Check if user already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      // User is already logged in, redirect
+      navigate("/dashboard"); 
+    }
+  }, [navigate]);
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -11,7 +25,7 @@ function Login() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
+  
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -31,17 +45,32 @@ function Login() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validate()) return;
 
     setIsLoading(true);
+    setErrors({});
 
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const response = await api.post("/Auth/login", {
+        email: formData.email,
+        password: formData.password,
+      });
+      // Store token globally via AuthContext
+      login(response.data.message);
+      
       alert("Login Success 🎉");
-    }, 1000);
+      navigate("/dashboard");
+    } catch (err) {
+      setErrors({ 
+        ...errors, 
+        password: err.response?.data || "Login failed. Please check your credentials." 
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // ===== SAME REGISTER COLORS =====
