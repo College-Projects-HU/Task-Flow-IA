@@ -21,21 +21,14 @@ builder.Services.AddCors(options =>
     });
 });
 
-<<<<<<< Updated upstream
-=======
 builder.Services.AddScoped<TaskService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ProjectService>();
-builder.Services.AddScoped<TaskService>();
 builder.Services.AddControllers()
 .AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
-
-// إعدادات الـ Swagger
->>>>>>> Stashed changes
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

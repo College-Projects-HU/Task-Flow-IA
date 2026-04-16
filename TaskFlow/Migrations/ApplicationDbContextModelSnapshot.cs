@@ -15,13 +15,6 @@ namespace TaskFlow.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-<<<<<<< Updated upstream
-            modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.25")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
-
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-=======
             modelBuilder.HasAnnotation("ProductVersion", "8.0.25");
 
             modelBuilder.Entity("TaskFlow.Models.Attachment", b =>
@@ -297,7 +290,6 @@ namespace TaskFlow.Migrations
 
                     b.Navigation("Notifications");
                 });
->>>>>>> Stashed changes
 #pragma warning restore 612, 618
         }
     }
