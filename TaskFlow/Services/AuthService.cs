@@ -92,6 +92,7 @@ namespace TaskFlow.Services
 
             try
             {
+                // uncomment after testing with backend 
                 // if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
                 if (dto.Password != user.PasswordHash)
                     return "Invalid credentials";
