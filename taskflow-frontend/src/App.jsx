@@ -4,6 +4,8 @@ import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import AdminPage from "./pages/AdminPage";
 import RoleRoute from "./components/RoleRoute";
+import ProjectsPage from "./pages/Projects/ProjectsPage";
+import ProjectDetail from "./pages/ProjectDetail";
 import "./App.css";
 
 function App() {
@@ -21,6 +23,9 @@ function App() {
             </RoleRoute>
           } 
         />
+
+        <Route path="/Projects/ProjectPage" element={<ProjectsPage />} />
+        <Route path="/projects/:id" element={<ProjectDetail />} />
       </Routes>
     </BrowserRouter>
   );

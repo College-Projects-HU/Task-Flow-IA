@@ -23,5 +23,19 @@ api.interceptors.request.use(
     return Promise.reject(error);
   }
 );
+export const getProjects = async () => {
+  return [
+    {
+      id: 1,
+      name: "TaskFlow",
+      description: "Test project",
+      taskCount: 3,
+      createdAt: "2026-04-01",
+    },
+  ];
+};
 
+export const createProject = async (data) => {
+  return data;
+};
 export default api;
