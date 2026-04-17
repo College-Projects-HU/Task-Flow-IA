@@ -6,5 +6,7 @@ namespace TaskFlow.Models
         public string Name { get; set; }
         public string Description { get; set; }
         public int ProjectManagerId { get; set; }
+        public bool IsDeleted { get; set; } = false;
+        public List<TaskItem> Tasks { get; set; }
     }
 }

@@ -48,6 +48,7 @@ builder.Services.AddCors(options =>
 });
 
 // 4. تسجيل الخدمات (Dependency Injection)
+builder.Services.AddScoped<ProjectService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
