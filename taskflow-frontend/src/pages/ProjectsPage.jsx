@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { getProjects, createProject } from "../../services/api";
-import ProjectCard from "../../components/ProjectCard";
-import CreateProjectModal from "../../components/CreateProjectModal";
+import { getProjects, createProject } from "../services/api";
+import ProjectCard from "../components/ProjectCard";
+import CreateProjectModal from "../components/CreateProjectModal";
 import "./Project.css";
 
 const ProjectsPage = () => {
@@ -54,10 +54,7 @@ const ProjectsPage = () => {
         <h2 className="projects-title">Projects</h2>
 
         {role === "ProjectManager" && (
-          <button
-            className="create-btn"
-            onClick={() => setShowModal(true)}
-          >
+          <button className="create-btn" onClick={() => setShowModal(true)}>
             + Create Project
           </button>
         )}

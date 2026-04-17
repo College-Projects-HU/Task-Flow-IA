@@ -4,7 +4,7 @@ import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import AdminPage from "./pages/AdminPage";
 import RoleRoute from "./components/RoleRoute";
-import ProjectsPage from "./pages/Projects/ProjectsPage";
+import ProjectsPage from "./pages/ProjectsPage";
 import ProjectDetail from "./pages/ProjectDetail";
 import "./App.css";
 
@@ -15,13 +15,13 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route 
-          path="/admin" 
+        <Route
+          path="/admin"
           element={
             <RoleRoute allowedRoles={[0, "Admin"]}>
               <AdminPage />
             </RoleRoute>
-          } 
+          }
         />
 
         <Route path="/Projects/ProjectPage" element={<ProjectsPage />} />
