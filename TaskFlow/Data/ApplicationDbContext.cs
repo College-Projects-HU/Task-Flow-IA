@@ -24,7 +24,7 @@ namespace TaskFlow.Data
                 new User
                 {
                     Id = 1,
-                    FullName = "Admin",
+                    FullName = "Project",
                     Email = "admin@taskflow.com",
                     PasswordHash = "123456",
                     Role = Role.Admin,
