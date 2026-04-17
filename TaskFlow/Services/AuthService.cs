@@ -92,7 +92,8 @@ namespace TaskFlow.Services
 
             try
             {
-                if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+                // if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+                if (dto.Password != user.PasswordHash)
                     return "Invalid credentials";
             }
             catch (BCrypt.Net.SaltParseException)

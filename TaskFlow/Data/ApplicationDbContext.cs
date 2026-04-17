@@ -30,6 +30,26 @@ namespace TaskFlow.Data
                     Role = Role.Admin,
                     IsApproved = true,
                     CreatedAt = new DateTime(2026, 1, 1)
+                },
+                new User
+                {
+                    Id = 2,
+                    FullName = "Project Manager",
+                    Email = "pm@taskflow.com",
+                    PasswordHash = "123456",
+                    Role = Role.ProjectManager,
+                    IsApproved = true,
+                    CreatedAt = new DateTime(2026, 1, 1)
+                },
+                new User
+                {
+                    Id = 3,
+                    FullName = "Team Member",
+                    Email = "member@taskflow.com",
+                    PasswordHash = "123456",
+                    Role = Role.Member,
+                    IsApproved = true,
+                    CreatedAt = new DateTime(2026, 1, 1)
                 }
             );
         }

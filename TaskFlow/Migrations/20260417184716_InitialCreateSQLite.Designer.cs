@@ -11,7 +11,7 @@ using TaskFlow.Data;
 namespace TaskFlow.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260413164636_InitialCreateSQLite")]
+    [Migration("20260417184716_InitialCreateSQLite")]
     partial class InitialCreateSQLite
     {
         /// <inheritdoc />
@@ -181,6 +181,26 @@ namespace TaskFlow.Migrations
                             IsApproved = true,
                             PasswordHash = "123456",
                             Role = 0
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "pm@taskflow.com",
+                            FullName = "Project Manager",
+                            IsApproved = true,
+                            PasswordHash = "123456",
+                            Role = 1
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "member@taskflow.com",
+                            FullName = "Team Member",
+                            IsApproved = true,
+                            PasswordHash = "123456",
+                            Role = 2
                         });
                 });
 #pragma warning restore 612, 618
