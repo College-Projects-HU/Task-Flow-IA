@@ -59,9 +59,34 @@ export const getProjectById = async (id) => {
     id: p.id,
     name: p.name,
     description: p.description,
-    taskCount: p.tasks.length,
-    createdAt: "2026-04-01",
+    taskCount: p.tasks?.length || 0,
+    createdAt: p.createdAt || "2026-04-01",
+    tasks: p.tasks || []
   };
+};
+
+// 🔹 GET project tasks (full task objects)
+export const getProjectTasks = async (projectId) => {
+  const res = await api.get(`/projects/${projectId}/tasks`);
+  return res.data;
+};
+
+// 🔹 GET project members
+export const getProjectMembers = async (projectId) => {
+  const res = await api.get(`/projects/${projectId}/members`);
+  return res.data;
+};
+
+// 🔹 CREATE task
+export const createTask = async (projectId, taskData) => {
+  const res = await api.post(`/projects/${projectId}/tasks`, taskData);
+  return res.data;
+};
+
+// 🔹 UPDATE task
+export const updateTask = async (taskId, taskData) => {
+  const res = await api.put(`/tasks/${taskId}`, taskData);
+  return res.data;
 };
 
 export default api;
