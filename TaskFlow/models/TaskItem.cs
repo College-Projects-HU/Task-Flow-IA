@@ -7,6 +7,7 @@ namespace TaskFlow.Models
         public string Description { get; set; }
         public int AssignedMemberId { get; set; }
         public int ProjectId { get; set; }
+        public Project Project { get; set; }
         public string Priority { get; set; }
         public DateTime DueDate { get; set; }
         public TaskStatus Status { get; set; }
