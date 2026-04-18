@@ -215,16 +215,16 @@ function Register() {
           {/* STEP 1 */}
           {step === 1 && (
             <>
-              <input style={styles.input} name="firstName" placeholder="First Name" onChange={handleChange} />
+              <input style={styles.input} value={formData.firstName} name="firstName" placeholder="First Name" onChange={handleChange} />
               <span style={styles.error}>{errors.firstName}</span>
 
-              <input style={styles.input} name="lastName" placeholder="Last Name" onChange={handleChange} />
+              <input style={styles.input} value={formData.lastName} name="lastName" placeholder="Last Name" onChange={handleChange} />
               <span style={styles.error}>{errors.lastName}</span>
 
-              <input style={styles.input} name="email" placeholder="Email" onChange={handleChange} />
+              <input style={styles.input} value={formData.email} name="email" placeholder="Email" onChange={handleChange} />
               <span style={styles.error}>{errors.email}</span>
 
-              <input style={styles.input} name="phone" placeholder="Phone" onChange={handleChange} />
+              <input style={styles.input} value={formData.phone} name="phone" placeholder="Phone" onChange={handleChange} />
               <span style={styles.error}>{errors.phone}</span>
             </>
           )}
@@ -232,10 +232,10 @@ function Register() {
           {/* STEP 2 */}
           {step === 2 && (
             <>
-              <input style={styles.input} type="password" name="password" placeholder="Password" onChange={handleChange} />
+              <input style={styles.input} value={formData.password} type="password" name="password" placeholder="Password" onChange={handleChange} />
               <span style={styles.error}>{errors.password}</span>
 
-              <input style={styles.input} type="password" name="confirmPassword" placeholder="Confirm Password" onChange={handleChange} />
+              <input style={styles.input} value={formData.confirmPassword} type="password" name="confirmPassword" placeholder="Confirm Password" onChange={handleChange} />
               <span style={styles.error}>{errors.confirmPassword}</span>
             </>
           )}
@@ -243,7 +243,7 @@ function Register() {
           {/* STEP 3 */}
           {step === 3 && (
             <>
-              <input style={styles.input} name="jobTitle" placeholder="Job Title" onChange={handleChange} />
+              <input style={styles.input} value={formData.jobTitle} name="jobTitle" placeholder="Job Title" onChange={handleChange} />
               <span style={styles.error}>{errors.jobTitle}</span>
 
               {/* ROLE SELECTION (RADIO BUTTONS) */}
