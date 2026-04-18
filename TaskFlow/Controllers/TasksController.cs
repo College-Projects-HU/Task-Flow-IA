@@ -305,7 +305,7 @@ namespace TaskFlow.Controllers
                 return NotFound(new { message = "Project not found." });
 
             var members = await _context.Users
-                .Where(u => u.Id == id)
+                .Where(u => u.Role == Role.Member) // return members only that belong to that project
                 .Select(u => new
                 {
                     u.Id,
