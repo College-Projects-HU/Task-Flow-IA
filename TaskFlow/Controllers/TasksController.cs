@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -234,6 +234,87 @@ namespace TaskFlow.Controllers
 
             return NoContent();
         }
+        // ==============================
+        // M3: Update Task Status
+        // ==============================
+        [HttpPatch("tasks/{id:int}/status")]
+        [Authorize]
+        public async Task<IActionResult> UpdateTaskStatus(int id, [FromBody] UpdateTaskStatusDto dto)
+        {
+            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
+
+            if (task == null)
+                return NotFound(new { message = "Task not found." });
+
+            var userId = GetCurrentUserId();
+            var role = User.FindFirstValue(ClaimTypes.Role);
+
+            // Member يغير بس التاسك بتاعه
+            if (role == "Member" && task.AssignedMemberId != userId)
+                return StatusCode(403, new { message = "You can only update your own tasks." });
+
+            // منع الرجوع لورا
+            if ((int)dto.Status < (int)task.Status)
+                return BadRequest(new { message = "Invalid status transition." });
+
+            task.Status = dto.Status;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Task status updated successfully." });
+        }
+
+        // ==============================
+        // M3: Assign Task
+        // ==============================
+        [HttpPatch("tasks/{id:int}/assign")]
+        [Authorize(Roles = "ProjectManager")]
+        public async Task<IActionResult> AssignTask(int id, [FromBody] AssignTaskDto dto)
+        {
+            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
+
+            if (task == null)
+                return NotFound(new { message = "Task not found." });
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == dto.UserId);
+
+            if (user == null)
+                return BadRequest(new { message = "User not found." });
+
+            // (اختياري) تأكد إنه في نفس المشروع
+            if (user.Id != task.ProjectId)
+                return BadRequest(new { message = "User is not part of this project." });
+
+            task.AssignedMemberId = dto.UserId;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Task assigned successfully." });
+        }
+
+        // ==============================
+        // M3: Get Project Members
+        // ==============================
+        [HttpGet("projects/{id:int}/members")]
+        [Authorize(Roles = "ProjectManager")]
+        public async Task<IActionResult> GetProjectMembers(int id)
+        {
+            var projectExists = await _context.Projects.AnyAsync(p => p.Id == id);
+
+            if (!projectExists)
+                return NotFound(new { message = "Project not found." });
+
+            var members = await _context.Users
+                .Where(u => u.Id == id)
+                .Select(u => new
+                {
+                    u.Id,
+                    u.FullName
+                })
+                .ToListAsync();
+
+            return Ok(members);
+        }
 
         private async Task<Project?> GetOwnedProjectAsync(int projectId)
         {
@@ -259,8 +340,12 @@ namespace TaskFlow.Controllers
             List<TaskCommentResponseDto>? comments = null,
             List<TaskAttachmentResponseDto>? attachments = null)
         {
-            assignedUsers.TryGetValue(task.AssignedMemberId, out var assignedUserName);
+            string assignedUserName = string.Empty;
 
+            if (task.AssignedMemberId.HasValue)
+            {
+                assignedUsers.TryGetValue(task.AssignedMemberId.Value, out assignedUserName);
+            }
             return new TaskResponseDto
             {
                 Id = task.Id,

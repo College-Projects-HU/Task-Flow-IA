@@ -111,7 +111,7 @@ namespace TaskFlow.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("AssignedMemberId")
+                    b.Property<int?>("AssignedMemberId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Description")
