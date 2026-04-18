@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TaskFlow.Migrations
 {
     /// <inheritdoc />
-    public partial class AddProjectTable : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -100,7 +100,7 @@ namespace TaskFlow.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     Title = table.Column<string>(type: "TEXT", nullable: false),
                     Description = table.Column<string>(type: "TEXT", nullable: false),
-                    AssignedMemberId = table.Column<int>(type: "INTEGER", nullable: false),
+                    AssignedMemberId = table.Column<int>(type: "INTEGER", nullable: true),
                     ProjectId = table.Column<int>(type: "INTEGER", nullable: false),
                     Priority = table.Column<string>(type: "TEXT", nullable: false),
                     DueDate = table.Column<DateTime>(type: "TEXT", nullable: false),

@@ -11,8 +11,8 @@ using TaskFlow.Data;
 namespace TaskFlow.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260417214826_AddProjectTable")]
-    partial class AddProjectTable
+    [Migration("20260418112317_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -114,7 +114,7 @@ namespace TaskFlow.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("AssignedMemberId")
+                    b.Property<int?>("AssignedMemberId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Description")
