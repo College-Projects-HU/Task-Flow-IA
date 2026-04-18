@@ -24,7 +24,7 @@ function App() {
           }
         />
 
-        <Route path="/Projects/ProjectPage" element={<ProjectsPage />} />
+        <Route path="/Projects" element={<ProjectsPage />} />
         <Route path="/projects/:id" element={<ProjectDetail />} />
       </Routes>
     </BrowserRouter>

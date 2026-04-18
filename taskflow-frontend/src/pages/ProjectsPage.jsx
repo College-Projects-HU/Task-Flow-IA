@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { getProjects, createProject } from "../services/api";
 import ProjectCard from "../components/ProjectCard";
 import CreateProjectModal from "../components/CreateProjectModal";
+import { getRoleFromToken } from "../utils/decodeToken";
 import "./ProjectsPage.css";
 
 const ProjectsPage = () => {
@@ -9,14 +10,14 @@ const ProjectsPage = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
-  // 🔥 fetch projects
+  // 🔥 GET projects from API
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await getProjects();
-        setProjects(data || []);
+        setProjects(data);
       } catch (err) {
-        console.log(err);
+        console.log("Error fetching projects:", err);
       } finally {
         setLoading(false);
       }
@@ -25,18 +26,27 @@ const ProjectsPage = () => {
     fetchData();
   }, []);
 
-  // 🔥 create project (FIXED ✅)
+  // 🔥 CREATE project via API
   const handleCreate = async (newProject) => {
     try {
       const created = await createProject(newProject);
-      setProjects([created, ...projects]);
+
+      // 👇 مهم جدًا: backend بيرجع project بدون taskCount
+      setProjects((prev) => [
+        {
+          ...created,
+          taskCount: 0,
+          createdAt: new Date().toISOString().split("T")[0],
+        },
+        ...prev,
+      ]);
     } catch (err) {
-      console.log(err);
+      console.log("Error creating project:", err);
     }
   };
 
-  // 👇 role
-  const role = localStorage.getItem("role") || "ProjectManager";
+  // 🔐 role
+  const role = getRoleFromToken();
 
   // 🔄 loading
   if (loading) {
@@ -54,7 +64,10 @@ const ProjectsPage = () => {
         <h2 className="projects-title">Projects</h2>
 
         {role === "ProjectManager" && (
-          <button className="create-btn" onClick={() => setShowModal(true)}>
+          <button
+            className="create-btn"
+            onClick={() => setShowModal(true)}
+          >
             + Create Project
           </button>
         )}
@@ -77,7 +90,7 @@ const ProjectsPage = () => {
       <CreateProjectModal
         show={showModal}
         handleClose={() => setShowModal(false)}
-        onCreate={handleCreate} // ✅ FIXED
+        onCreate={handleCreate}
       />
     </div>
   );
