@@ -109,21 +109,42 @@ using (var scope = app.Services.CreateScope())
     if (!context.Users.Any(u => u.Email == "admin@a.a"))
     {
         var authService = scope.ServiceProvider.GetRequiredService<IAuthService>();
+        
+        // 1. Seed Admin
         await authService.RegisterAsync(new TaskFlow.DTOs.RegisterDto
         {
             Email = "admin@a.a",
-            Password = "admin123",
+            Password = "000000",
             FullName = "Administrator",
             Role = TaskFlow.Models.Role.Admin
         });
 
-        // By default, RegisterAsync sets IsApproved = false for Admin, so we approve them
-        var adminUser = context.Users.FirstOrDefault(u => u.Email == "admin@a.a");
-        if (adminUser != null)
+        // 2. Seed PM
+        await authService.RegisterAsync(new TaskFlow.DTOs.RegisterDto
         {
-            adminUser.IsApproved = true;
-            await context.SaveChangesAsync();
+            Email = "pm@p.p",
+            Password = "000000",
+            FullName = "Project Manager",
+            Role = TaskFlow.Models.Role.ProjectManager
+        });
+
+        // 3. Seed Member
+        await authService.RegisterAsync(new TaskFlow.DTOs.RegisterDto
+        {
+            Email = "m@m.m",
+            Password = "000000",
+            FullName = "Team Member",
+            Role = TaskFlow.Models.Role.Member
+        });
+
+        // By default, RegisterAsync sets IsApproved = false for Admin and PM, so we approve them
+        // Member is auto-approved by default in AuthService, but we can verify it.
+        var addedUsers = context.Users.Where(u => u.Email == "admin@a.a" || u.Email == "pm@p.p").ToList();
+        foreach(var u in addedUsers)
+        {
+            u.IsApproved = true;
         }
+        await context.SaveChangesAsync();
     }
 }
 

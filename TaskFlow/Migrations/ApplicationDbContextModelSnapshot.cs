@@ -172,38 +172,6 @@ namespace TaskFlow.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "admin@taskflow.com",
-                            FullName = "Admin",
-                            IsApproved = true,
-                            PasswordHash = "123456",
-                            Role = 0
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "pm@taskflow.com",
-                            FullName = "Project Manager",
-                            IsApproved = true,
-                            PasswordHash = "123456",
-                            Role = 1
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "member@taskflow.com",
-                            FullName = "Team Member",
-                            IsApproved = true,
-                            PasswordHash = "123456",
-                            Role = 2
-                        });
                 });
 
             modelBuilder.Entity("TaskFlow.Models.TaskItem", b =>
