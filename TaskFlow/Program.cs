@@ -99,4 +99,32 @@ app.UseAuthorization();  // 2. التحقق من الصلاحيات (مسموح 
 
 app.MapControllers();
 
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    // Ensure the database is created
+    context.Database.EnsureCreated();
+
+    // Check if the admin user exists
+    if (!context.Users.Any(u => u.Email == "admin@a.a"))
+    {
+        var authService = scope.ServiceProvider.GetRequiredService<IAuthService>();
+        await authService.RegisterAsync(new TaskFlow.DTOs.RegisterDto
+        {
+            Email = "admin@a.a",
+            Password = "admin123",
+            FullName = "Administrator",
+            Role = TaskFlow.Models.Role.Admin
+        });
+
+        // By default, RegisterAsync sets IsApproved = false for Admin, so we approve them
+        var adminUser = context.Users.FirstOrDefault(u => u.Email == "admin@a.a");
+        if (adminUser != null)
+        {
+            adminUser.IsApproved = true;
+            await context.SaveChangesAsync();
+        }
+    }
+}
+
 app.Run();
