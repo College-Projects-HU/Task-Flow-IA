@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { getProjects, createProject } from "../services/api";
 import ProjectCard from "../components/ProjectCard";
 import CreateProjectModal from "../components/CreateProjectModal";
-import "./Project.css";
+import "./ProjectsPage.css";
 
 const ProjectsPage = () => {
   const [projects, setProjects] = useState([]);
