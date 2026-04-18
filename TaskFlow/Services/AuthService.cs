@@ -86,9 +86,7 @@ namespace TaskFlow.Services
                 
             try
             {
-                // uncomment after testing with backend 
-                // if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-                if (dto.Password != user.PasswordHash)
+                if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
                     return "Invalid credentials";
             }
             catch (BCrypt.Net.SaltParseException)
@@ -96,7 +94,7 @@ namespace TaskFlow.Services
                 // لو في اي مشكلة بنعرض رسالة صغيرة بدل ما البرنامج كله يضرب في وش اليوزر
                 return "Invalid credentials";
             }
-            
+
             // اتاكد ان البروجكت مانجر معموله ابروف
             if (!user.IsApproved)
             {
