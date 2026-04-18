@@ -84,12 +84,6 @@ namespace TaskFlow.Services
             if (user == null)
                 return "Invalid credentials";
                 
-            // اتاكد ان البروجكت مانجر معموله ابروف
-            if (!user.IsApproved)
-            {
-                return "Your account is pending admin approval.";
-            }
-
             try
             {
                 // uncomment after testing with backend 
@@ -102,6 +96,13 @@ namespace TaskFlow.Services
                 // لو في اي مشكلة بنعرض رسالة صغيرة بدل ما البرنامج كله يضرب في وش اليوزر
                 return "Invalid credentials";
             }
+            
+            // اتاكد ان البروجكت مانجر معموله ابروف
+            if (!user.IsApproved)
+            {
+                return "Your account is pending admin approval.";
+            }
+
 
             // لو كل حاجة صح، بنرجع الـ Token
             return GenerateJwtToken(user);
