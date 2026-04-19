@@ -241,6 +241,13 @@ namespace TaskFlow.Controllers
         [Authorize]
         public async Task<IActionResult> UpdateTaskStatus(int id, [FromBody] UpdateTaskStatusDto dto)
         {
+            if (dto == null)
+                return BadRequest(new { message = "Invalid request." });
+
+            // 🚨 مهم جدًا
+            if (!Enum.IsDefined(typeof(TaskFlow.Models.TaskStatus), dto.Status))
+                return BadRequest(new { message = "Invalid status value." });
+
             var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
 
             if (task == null)
@@ -271,19 +278,24 @@ namespace TaskFlow.Controllers
         [Authorize(Roles = "ProjectManager")]
         public async Task<IActionResult> AssignTask(int id, [FromBody] AssignTaskDto dto)
         {
-            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
+            if (dto == null)
+                return BadRequest(new { message = "Invalid request body." });
+
+            var task = await _context.Tasks
+                .FirstOrDefaultAsync(t => t.Id == id);
 
             if (task == null)
                 return NotFound(new { message = "Task not found." });
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == dto.UserId);
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == dto.UserId);
 
             if (user == null)
                 return BadRequest(new { message = "User not found." });
 
-            // (اختياري) تأكد إنه في نفس المشروع
-            if (user.Id != task.ProjectId)
-                return BadRequest(new { message = "User is not part of this project." });
+            // 🚨 الشرط المهم
+            if (user.Role != Role.Member)
+                return BadRequest(new { message = "You can only assign tasks to Members." });
 
             task.AssignedMemberId = dto.UserId;
 
@@ -291,7 +303,6 @@ namespace TaskFlow.Controllers
 
             return Ok(new { message = "Task assigned successfully." });
         }
-
         // ==============================
         // M3: Get Project Members
         // ==============================

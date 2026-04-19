@@ -16,13 +16,17 @@ namespace TaskFlow.Services
         // ==============================
         // 1. Update Task Status
         // ==============================
-        public async Task UpdateTaskStatus(int taskId, int userId, string role, TaskFlow.Models.TaskStatus newStatus)
+        public async Task UpdateTaskStatus(int taskId, int userId, string role, TaskFlow.Models.TaskStatus  newStatus)
         {
             var task = await _context.Tasks
                 .FirstOrDefaultAsync(t => t.Id == taskId);
 
             if (task == null)
                 throw new Exception("Task not found");
+
+            // 🚨 تحقق إن القيمة valid
+            if (!Enum.IsDefined(typeof(TaskFlow.Models.TaskStatus), newStatus))
+                throw new Exception("Invalid status value");
 
             // Member يغير بس التاسك بتاعه
             if (role == "Member" && task.AssignedMemberId != userId)
@@ -42,6 +46,7 @@ namespace TaskFlow.Services
         // ==============================
         public async Task AssignTask(int taskId, string role, int assignedUserId)
         {
+            // check إن اللي بيعمل assign هو Project Manager
             if (role != "ProjectManager")
                 throw new UnauthorizedAccessException("Only Project Manager can assign tasks");
 
@@ -57,9 +62,9 @@ namespace TaskFlow.Services
             if (user == null)
                 throw new Exception("User not found");
 
-            // ⚠️ لو عندك ProjectId في User
-            if (user.Id != task.ProjectId)
-                throw new Exception("User is not part of this project");
+            // 🚨 الشرط الجديد
+            if (user.Role != Role.Member)
+                throw new Exception("You can only assign tasks to Members");
 
             task.AssignedMemberId = assignedUserId;
 
