@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using TaskFlow.DTOs;
 using TaskFlow.Services;
 
 namespace TaskFlow.Controllers
@@ -39,7 +40,14 @@ namespace TaskFlow.Controllers
         public async Task<IActionResult> Get(int id)
         {
             var result = await _attachmentService.GetByTaskId(id);
-            return Ok(result);
+
+            return Ok(result.Select(x => new AttachmentDto
+            {
+                Id = x.Id,
+                FileName = x.FileName,
+                FileSize = x.FileSize,
+                Url = $"{Request.Scheme}://{Request.Host}{x.Url}"
+            }));
         }
     }
 }

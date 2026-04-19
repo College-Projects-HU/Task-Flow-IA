@@ -100,9 +100,17 @@ app.UseHttpsRedirection();
 // الترتيب هنا "حياة أو موت" للمشروع:
 app.UseCors("ReactPolicy");
 
-app.UseAuthentication(); // 1. التحقق من الهوية (مين اليوزر؟)
-app.UseAuthorization();  // 2. التحقق من الصلاحيات (مسموح له يعمل إيه؟)
-app.UseStaticFiles();
+app.UseHttpsRedirection();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    ServeUnknownFileTypes = true
+});
+app.UseCors("ReactPolicy");
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 
 
