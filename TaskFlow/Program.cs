@@ -1,8 +1,9 @@
-using Microsoft.EntityFrameworkCore;
-using TaskFlow.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using TaskFlow.Data;
 using TaskFlow.Interfaces;
 using TaskFlow.Services;
 
@@ -51,6 +52,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<ProjectService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddScoped<AttachmentService>();
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
@@ -79,6 +81,10 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 10485760; // 10MB
+});
 
 var app = builder.Build();
 
@@ -96,15 +102,15 @@ app.UseCors("ReactPolicy");
 
 app.UseAuthentication(); // 1. التحقق من الهوية (مين اليوزر؟)
 app.UseAuthorization();  // 2. التحقق من الصلاحيات (مسموح له يعمل إيه؟)
-
+app.UseStaticFiles();
 app.MapControllers();
+
 
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     // Ensure the database is created
-    context.Database.EnsureCreated();
-
+    context.Database.Migrate();
     // Check if the admin user exists
     if (!context.Users.Any(u => u.Email == "admin@a.a"))
     {

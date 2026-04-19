@@ -11,8 +11,8 @@ using TaskFlow.Data;
 namespace TaskFlow.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260418142239_InitDb")]
-    partial class InitDb
+    [Migration("20260419183029_AddAttachments")]
+    partial class AddAttachments
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -26,14 +26,29 @@ namespace TaskFlow.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("FilePath")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<long>("FileSize")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("TaskId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UploadedByUserId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("TaskId");
 
                     b.ToTable("Attachments");
                 });
@@ -175,6 +190,17 @@ namespace TaskFlow.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("TaskFlow.Models.Attachment", b =>
+                {
+                    b.HasOne("TaskFlow.Models.TaskItem", "Task")
+                        .WithMany()
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Task");
                 });
 
             modelBuilder.Entity("TaskFlow.Models.TaskItem", b =>

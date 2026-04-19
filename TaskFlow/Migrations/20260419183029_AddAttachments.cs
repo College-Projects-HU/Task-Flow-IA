@@ -6,25 +6,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TaskFlow.Migrations
 {
     /// <inheritdoc />
-    public partial class InitDb : Migration
+    public partial class AddAttachments : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "Attachments",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    FilePath = table.Column<string>(type: "TEXT", nullable: false),
-                    TaskId = table.Column<int>(type: "INTEGER", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Attachments", x => x.Id);
-                });
-
             migrationBuilder.CreateTable(
                 name: "Comments",
                 columns: table => new
@@ -115,6 +101,35 @@ namespace TaskFlow.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Attachments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    TaskId = table.Column<int>(type: "INTEGER", nullable: false),
+                    UploadedByUserId = table.Column<int>(type: "INTEGER", nullable: false),
+                    FileName = table.Column<string>(type: "TEXT", nullable: false),
+                    FilePath = table.Column<string>(type: "TEXT", nullable: false),
+                    FileSize = table.Column<long>(type: "INTEGER", nullable: false),
+                    UploadedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Attachments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Attachments_Tasks_TaskId",
+                        column: x => x.TaskId,
+                        principalTable: "Tasks",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Attachments_TaskId",
+                table: "Attachments",
+                column: "TaskId");
+
             migrationBuilder.CreateIndex(
                 name: "IX_Tasks_ProjectId",
                 table: "Tasks",
@@ -134,10 +149,10 @@ namespace TaskFlow.Migrations
                 name: "Notifications");
 
             migrationBuilder.DropTable(
-                name: "Tasks");
+                name: "Users");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "Tasks");
 
             migrationBuilder.DropTable(
                 name: "Projects");
