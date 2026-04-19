@@ -42,6 +42,7 @@ namespace TaskFlow.Services
         // ==============================
         public async Task AssignTask(int taskId, string role, int assignedUserId)
         {
+            // check إن اللي بيعمل assign هو Project Manager
             if (role != "ProjectManager")
                 throw new UnauthorizedAccessException("Only Project Manager can assign tasks");
 
@@ -57,9 +58,9 @@ namespace TaskFlow.Services
             if (user == null)
                 throw new Exception("User not found");
 
-            // ⚠️ لو عندك ProjectId في User
-            if (user.Id != task.ProjectId)
-                throw new Exception("User is not part of this project");
+            // 🚨 الشرط الجديد
+            if (user.Role != Role.Member)
+                throw new Exception("You can only assign tasks to Members");
 
             task.AssignedMemberId = assignedUserId;
 
