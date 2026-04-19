@@ -5,14 +5,12 @@ import { AuthContext } from "../context/AuthContext";
 
 function Login() {
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext); // Access global login fn
+  const { login } = useContext(AuthContext);
 
-  // Check if user already logged in
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      // User is already logged in, redirect
-      navigate("/dashboard"); 
+      navigate("/dashboard");
     }
   }, [navigate]);
 
@@ -25,7 +23,7 @@ function Login() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -58,99 +56,56 @@ function Login() {
         email: formData.email,
         password: formData.password,
       });
-      // Store token globally via AuthContext
+
       login(response.data.message);
-      
-      alert("Login Success 🎉");
+      alert("Login Success");
       navigate("/dashboard");
     } catch (err) {
-      setErrors({ 
-        ...errors, 
-        password: err.response?.data || "Login failed. Please check your credentials." 
+      setErrors({
+        ...errors,
+        password:
+          err.response?.data ||
+          "Login failed. Please check your credentials.",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // ===== SAME REGISTER COLORS =====
-  const styles = {
-    container: {
-      height: "100vh",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      background: "linear-gradient(135deg, #8c8ca5, #0749ac)",
-    },
-
-    card: {
-      width: "380px",
-      padding: "25px",
-      borderRadius: "15px",
-      background: "rgba(132, 132, 139, 0.39)",
-      color: "white",
-      boxShadow: "0 10px 30px rgba(58, 58, 58, 0.3)",
-    },
-
-    input: {
-      width: "100%",
-      padding: "10px",
-      marginBottom: "5px",
-      borderRadius: "8px",
-      border: "none",
-      outline: "none",
-    },
-
-    error: {
-      color: "#ff6b6b",
-      fontSize: "12px",
-      marginBottom: "8px",
-      display: "block",
-    },
-
-    btn: {
-      width: "100%",
-      padding: "10px",
-      borderRadius: "8px",
-      border: "none",
-      background: "linear-gradient(90deg, #0f6bb6, #0349a5)",
-      color: "white",
-      fontWeight: "bold",
-      cursor: "pointer",
-    },
-
-    link: {
-      color: "#002c5e",
-      textDecoration: "none",
-      fontWeight: "bold",
-    },
-  };
-
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-
-        <h3 style={{ textAlign: "center" }}>Welcome Back</h3>
-        <p style={{ textAlign: "center", opacity: 0.7 }}>
-          Login to TaskFlow
-        </p>
+    <div
+      className="d-flex justify-content-center align-items-center vh-100"
+      style={{
+        background: "linear-gradient(135deg, #8c8ca5, #0749ac)",
+      }}
+    >
+      <div
+        className="card p-4 shadow"
+        style={{
+          width: "380px",
+          borderRadius: "15px",
+          background: "rgba(132, 132, 139, 0.39)",
+          color: "white",
+        }}
+      >
+        <h3 className="text-center">Welcome Back</h3>
+        <p className="text-center opacity-75">Login to TaskFlow</p>
 
         <form onSubmit={handleSubmit}>
-
           {/* EMAIL */}
           <input
-            style={styles.input}
+            className="form-control mb-3 "
             type="email"
             name="email"
             placeholder="Email"
             onChange={handleChange}
           />
-          <span style={styles.error}>{errors.email}</span>
+          <small className="text-danger">{errors.email}</small>
 
           {/* PASSWORD */}
-          <div style={{ position: "relative" }}>
+          <div className="position-relative">
             <input
-              style={styles.input}
+              className="form-control mb-3"
               type={showPassword ? "text" : "password"}
               name="password"
               placeholder="Password"
@@ -170,37 +125,44 @@ function Login() {
             </span>
           </div>
 
-          <span style={styles.error}>{errors.password}</span>
+          <small className="text-danger">{errors.password}</small>
 
           {/* OPTIONS */}
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "15px" }}>
-
+          <div className="d-flex justify-content-between align-items-center mb-3 small">
             <label>
               <input
                 type="checkbox"
                 name="rememberMe"
                 onChange={handleChange}
-              /> Remember me
+                className="me-1"
+              />
+              Remember me
             </label>
 
-            <Link to="/forgot-password" style={styles.link}>
+            <Link to="/forgot-password" className="fw-bold text-decoration-none text-primary">
               Forgot?
             </Link>
           </div>
 
           {/* BUTTON */}
-          <button style={styles.btn} type="submit" disabled={isLoading}>
+          <button
+            className="btn w-100 fw-bold text-white"
+            style={{
+              background: "linear-gradient(90deg, #0f6bb6, #0349a5)",
+            }}
+            type="submit"
+            disabled={isLoading}
+          >
             {isLoading ? "Loading..." : "LOGIN"}
           </button>
         </form>
 
-        <p style={{ textAlign: "center", marginTop: "15px" }}>
+        <p className="text-center mt-3">
           Don't have account?{" "}
-          <Link to="/register" style={styles.link}>
+          <Link to="/register" className="fw-bold text-decoration-none text-primary">
             Create
           </Link>
         </p>
-
       </div>
     </div>
   );
