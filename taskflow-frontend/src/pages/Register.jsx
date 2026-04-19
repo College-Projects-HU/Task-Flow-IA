@@ -37,7 +37,7 @@ function Register() {
     if (step === 1) {
       if (!formData.firstName) newErrors.firstName = "Required";
       if (!formData.lastName) newErrors.lastName = "Required";
-      
+
       if (!formData.email) {
         newErrors.email = "Required";
       } else if (!emailRegex.test(formData.email)) {
@@ -53,7 +53,7 @@ function Register() {
       } else if (formData.password.length < 6) {
         newErrors.password = "Password must be at least 6 characters";
       }
-      
+
       if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = "Passwords do not match";
       }
@@ -81,19 +81,22 @@ function Register() {
     setErrors({});
 
     try {
-      // Send the properties expected by the backend DTO
       await api.post("/Auth/register", {
         fullName: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
         password: formData.password,
-        role: parseInt(formData.role, 10) // dynamically use the selected role
+        role: parseInt(formData.role, 10),
       });
+
       alert("Registered Successfully 🎉");
-      navigate("/"); // Redirect to Login page
+      navigate("/");
     } catch (err) {
       setErrors({
         ...errors,
-        jobTitle: err.response?.data?.message || err.response?.data || "Registration failed."
+        jobTitle:
+          err.response?.data?.message ||
+          err.response?.data ||
+          "Registration failed.",
       });
     } finally {
       setIsLoading(false);
@@ -102,191 +105,190 @@ function Register() {
 
   const progress = (step / 3) * 100;
 
-  // ================= STYLE OBJECTS =================
-  const styles = {
-    container: {
-      height: "100vh",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      background: "linear-gradient(135deg, #8c8ca5, #0749ac)",
-    },
-
-    card: {
-      width: "440px",
-      padding: "25px",
-      borderRadius: "15px",
-      background: "rgba(137, 137, 155, 0.55)",
-      color: "white",
-      boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
-    },
-
-    progressBar: {
-      height: "6px",
-      background: "rgba(255,255,255,0.2)",
-      borderRadius: "10px",
-      overflow: "hidden",
-      marginBottom: "10px",
-    },
-
-    progressFill: {
-      height: "100%",
-      width: `${progress}%`,
-      background: "linear-gradient(90deg, #3787ff, #001a8d)",
-      transition: "0.3s",
-    },
-
-    steps: {
-      display: "flex",
-      justifyContent: "space-between",
-      marginBottom: "15px",
-    },
-
-    step: (active) => ({
-      width: "28px",
-      height: "28px",
-      borderRadius: "50%",
-      background: active ? "#033092" : "rgba(255,255,255,0.2)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontSize: "12px",
-      fontWeight: "bold",
-    }),
-
-    input: {
-      width: "100%",
-      padding: "10px",
-      marginBottom: "5px",
-      borderRadius: "8px",
-      border: "none",
-      outline: "none",
-    },
-
-    error: {
-      color: "#ff6b6b",
-      fontSize: "12px",
-      marginBottom: "8px",
-      display: "block",
-    },
-
-    buttons: {
-      display: "flex",
-      gap: "10px",
-      marginTop: "15px",
-
-    },
-
-    btn: {
-      flex: 1,
-      padding: "10px",
-      borderRadius: "8px",
-      border: "none",
-      cursor: "pointer",
-      fontWeight: "bold",
-    },
-     link: {
-      color: "#002c5e",
-      textDecoration: "none",
-      fontWeight: "bold",
-    },
-  };
-
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-
+    <div
+      className="d-flex justify-content-center align-items-center vh-100"
+      style={{
+        background: "linear-gradient(135deg, #8c8ca5, #0749ac)",
+      }}
+    >
+      <div
+        className="card p-4 shadow"
+        style={{
+          width: "440px",
+          borderRadius: "15px",
+          background: "rgba(137, 137, 155, 0.55)",
+          color: "white",
+        }}
+      >
         {/* Progress */}
-        <div style={styles.progressBar}>
-          <div style={styles.progressFill}></div>
+        <div className="progress mb-2" style={{ height: "6px" }}>
+          <div
+            className="progress-bar"
+            style={{
+              width: `${progress}%`,
+              background: "linear-gradient(90deg, #3787ff, #001a8d)",
+            }}
+          ></div>
         </div>
 
-        <div style={styles.steps}>
-          <div style={styles.step(step >= 1)}>1</div>
-          <div style={styles.step(step >= 2)}>2</div>
-          <div style={styles.step(step >= 3)}>3</div>
+        {/* Steps */}
+        <div className="d-flex justify-content-between mb-3">
+          {[1, 2, 3].map((num) => (
+            <div
+              key={num}
+              className="d-flex align-items-center justify-content-center"
+              style={{
+                width: "28px",
+                height: "28px",
+                borderRadius: "50%",
+                background:
+                  step >= num ? "#033092" : "rgba(255,255,255,0.2)",
+                fontSize: "12px",
+                fontWeight: "bold",
+              }}
+            >
+              {num}
+            </div>
+          ))}
         </div>
 
-        <h3 style={{ textAlign: "center" }}>Create Account</h3>
-        <p style={{ textAlign: "center", opacity: 0.7 }}>Step {step}/3</p>
+        <h3 className="text-center">Create Account</h3>
+        <p className="text-center opacity-75">Step {step}/3</p>
 
         <form onSubmit={handleSubmit}>
-
           {/* STEP 1 */}
           {step === 1 && (
             <>
-              <input style={styles.input} value={formData.firstName} name="firstName" placeholder="First Name" onChange={handleChange} />
-              <span style={styles.error}>{errors.firstName}</span>
+              <input
+                className="form-control mb-3"
+                value={formData.firstName}
+                name="firstName"
+                placeholder="First Name"
+                onChange={handleChange}
+              />
+              <small className="text-danger">{errors.firstName}</small>
 
-              <input style={styles.input} value={formData.lastName} name="lastName" placeholder="Last Name" onChange={handleChange} />
-              <span style={styles.error}>{errors.lastName}</span>
+              <input
+                className="form-control mb-3"
+                value={formData.lastName}
+                name="lastName"
+                placeholder="Last Name"
+                onChange={handleChange}
+              />
+              <small className="text-danger">{errors.lastName}</small>
 
-              <input style={styles.input} value={formData.email} name="email" placeholder="Email" onChange={handleChange} />
-              <span style={styles.error}>{errors.email}</span>
+              <input
+                className="form-control mb-3"
+                value={formData.email}
+                name="email"
+                placeholder="Email"
+                onChange={handleChange}
+              />
+              <small className="text-danger">{errors.email}</small>
 
-              <input style={styles.input} value={formData.phone} name="phone" placeholder="Phone" onChange={handleChange} />
-              <span style={styles.error}>{errors.phone}</span>
+              <input
+                className="form-control mb-3"
+                value={formData.phone}
+                name="phone"
+                placeholder="Phone"
+                onChange={handleChange}
+              />
+              <small className="text-danger">{errors.phone}</small>
             </>
           )}
 
           {/* STEP 2 */}
           {step === 2 && (
             <>
-              <input style={styles.input} value={formData.password} type="password" name="password" placeholder="Password" onChange={handleChange} />
-              <span style={styles.error}>{errors.password}</span>
+              <input
+                className="form-control mb-3"
+                value={formData.password}
+                type="password"
+                name="password"
+                placeholder="Password"
+                onChange={handleChange}
+              />
+              <small className="text-danger">{errors.password}</small>
 
-              <input style={styles.input} value={formData.confirmPassword} type="password" name="confirmPassword" placeholder="Confirm Password" onChange={handleChange} />
-              <span style={styles.error}>{errors.confirmPassword}</span>
+              <input
+                className="form-control mb-3"
+                value={formData.confirmPassword}
+                type="password"
+                name="confirmPassword"
+                placeholder="Confirm Password"
+                onChange={handleChange}
+              />
+              <small className="text-danger">
+                {errors.confirmPassword}
+              </small>
             </>
           )}
 
           {/* STEP 3 */}
           {step === 3 && (
             <>
-              <input style={styles.input} value={formData.jobTitle} name="jobTitle" placeholder="Job Title" onChange={handleChange} />
-              <span style={styles.error}>{errors.jobTitle}</span>
+              <input
+                className="form-control mb-3"
+                value={formData.jobTitle}
+                name="jobTitle"
+                placeholder="Job Title"
+                onChange={handleChange}
+              />
+              <small className="text-danger">{errors.jobTitle}</small>
 
-              {/* ROLE SELECTION (RADIO BUTTONS) */}
-              <div style={{ marginBottom: "15px", display: "flex", gap: "15px", alignItems: "center" }}>
-                <span style={{ fontWeight: "bold" }}>Join as:</span>
-                <label style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+              {/* Role */}
+              <div className="mb-3">
+                <span className="fw-bold me-2">Join as:</span>
+
+                <div className="form-check form-check-inline">
                   <input
+                    className="form-check-input"
                     type="radio"
                     name="role"
-                    value={2} // Enum for Member
+                    value={2}
                     checked={parseInt(formData.role, 10) === 2}
                     onChange={handleChange}
                   />
-                  Member
-                </label>
-                <label style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                  <label className="form-check-label">Member</label>
+                </div>
+
+                <div className="form-check form-check-inline">
                   <input
+                    className="form-check-input"
                     type="radio"
                     name="role"
-                    value={1} // Enum for ProjectManager
+                    value={1}
                     checked={parseInt(formData.role, 10) === 1}
                     onChange={handleChange}
                   />
-                  Project Manager
-                </label>
+                  <label className="form-check-label">
+                    Project Manager
+                  </label>
+                </div>
               </div>
 
-              <input style={styles.input} type="file" name="profilePicture" onChange={handleChange} />
+              <input
+                className="form-control mb-2"
+                type="file"
+                name="profilePicture"
+                onChange={handleChange}
+              />
 
-              <div style={{ marginTop: "10px", color: "#f8f8f8", minHeight: "20px", fontSize: "14px" }}>
-                {parseInt(formData.role, 10) === 1 
-                  ? "Admin will need to review and approve your account." 
+              <div className="small text-light">
+                {parseInt(formData.role, 10) === 1
+                  ? "Admin will need to review and approve your account."
                   : "You can log in immediately after registering."}
               </div>
             </>
           )}
 
           {/* BUTTONS */}
-          <div style={styles.buttons}>
+          <div className="d-flex gap-2 mt-3">
             {step > 1 && (
               <button
                 type="button"
-                style={{ ...styles.btn, background: "#888", color: "white" }}
+                className="btn btn-secondary w-100"
                 onClick={prevStep}
               >
                 Back
@@ -294,35 +296,35 @@ function Register() {
             )}
 
             {step < 3 ? (
-            <button
-              type="button"
-              style={{
-                  ...styles.btn,
-                  background: "linear-gradient(90deg, #0f6bb6, #0349a5)",
-                  color: "white"
-                  }}
-              onClick={nextStep}
-            >
+              <button
+                type="button"
+                className="btn w-100 text-white"
+                style={{
+                  background:
+                    "linear-gradient(90deg, #0f6bb6, #0349a5)",
+                }}
+                onClick={nextStep}
+              >
                 Next
-            </button>
+              </button>
             ) : (
               <button
                 type="submit"
-                style={{ ...styles.btn, background: "#2196f3", color: "white" }}
+                className="btn btn-primary w-100"
+                disabled={isLoading}
               >
-                Register
+                {isLoading ? "Loading..." : "Register"}
               </button>
             )}
           </div>
-
         </form>
 
-        <p style={{ textAlign: "center", marginTop: "15px" }}>
-          Already have account?  <Link to="/" style={styles.link}>
-  Login
-</Link>
+        <p className="text-center mt-3">
+          Already have account?{" "}
+          <Link to="/" className="fw-bold text-decoration-none text-primary">
+            Login
+          </Link>
         </p>
-
       </div>
     </div>
   );
