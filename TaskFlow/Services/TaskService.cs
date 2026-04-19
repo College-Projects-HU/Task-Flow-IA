@@ -16,13 +16,17 @@ namespace TaskFlow.Services
         // ==============================
         // 1. Update Task Status
         // ==============================
-        public async Task UpdateTaskStatus(int taskId, int userId, string role, TaskFlow.Models.TaskStatus newStatus)
+        public async Task UpdateTaskStatus(int taskId, int userId, string role, TaskFlow.Models.TaskStatus  newStatus)
         {
             var task = await _context.Tasks
                 .FirstOrDefaultAsync(t => t.Id == taskId);
 
             if (task == null)
                 throw new Exception("Task not found");
+
+            // 🚨 تحقق إن القيمة valid
+            if (!Enum.IsDefined(typeof(TaskFlow.Models.TaskStatus), newStatus))
+                throw new Exception("Invalid status value");
 
             // Member يغير بس التاسك بتاعه
             if (role == "Member" && task.AssignedMemberId != userId)

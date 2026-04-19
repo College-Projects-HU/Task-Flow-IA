@@ -241,6 +241,13 @@ namespace TaskFlow.Controllers
         [Authorize]
         public async Task<IActionResult> UpdateTaskStatus(int id, [FromBody] UpdateTaskStatusDto dto)
         {
+            if (dto == null)
+                return BadRequest(new { message = "Invalid request." });
+
+            // 🚨 مهم جدًا
+            if (!Enum.IsDefined(typeof(TaskFlow.Models.TaskStatus), dto.Status))
+                return BadRequest(new { message = "Invalid status value." });
+
             var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
 
             if (task == null)
