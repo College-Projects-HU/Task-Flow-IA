@@ -88,5 +88,20 @@ export const updateTask = async (taskId, taskData) => {
   const res = await api.put(`/tasks/${taskId}`, taskData);
   return res.data;
 };
+// 🔹 UPLOAD attachment
+export const uploadAttachment = (taskId, formData, onUploadProgress) => {
+  return api.post(`/tasks/${taskId}/attachments`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+    onUploadProgress,
+  });
+};
+
+// 🔹 GET attachments
+export const getAttachments = async (taskId) => {
+  const res = await api.get(`/tasks/${taskId}/attachments`);
+  return res.data;
+};
 
 export default api;
