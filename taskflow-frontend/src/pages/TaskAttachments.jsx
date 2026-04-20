@@ -82,7 +82,7 @@ const TaskAttachments = () => {
             </span>
 
             <a
-              href={`http://localhost:5218/${file.filePath}`}
+             href={file.url}
               target="_blank"
               rel="noreferrer"
               className="btn btn-sm btn-outline-light"
