@@ -8,7 +8,7 @@
         public string Description { get; set; }
 
         public int? AssignedMemberId { get; set; } // مهم
-
+        public User AssignedMember { get; set; } 
         public int ProjectId { get; set; }
         public Project Project { get; set; }
 
