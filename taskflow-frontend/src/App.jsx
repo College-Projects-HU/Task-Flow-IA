@@ -8,6 +8,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import ProjectsPage from "./pages/ProjectsPage";
 import ProjectDetail from "./pages/ProjectDetail";
 import Dashboard from "./pages/Dashboard";
+import TaskAttachments from "./pages/TaskAttachments";
 import "./App.css";
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
 
         <Route path="/Projects" element={<ProjectsPage />} />
         <Route path="/projects/:id" element={<ProjectDetail />} />
+        <Route path="/tasks/:taskId/attachments" element={<TaskAttachments />} />
       </Routes>
     </BrowserRouter>
   );

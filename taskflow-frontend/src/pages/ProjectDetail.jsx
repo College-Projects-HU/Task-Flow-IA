@@ -5,6 +5,7 @@ import { AuthContext } from "../context/AuthContext";
 import CreateTaskModal from "../components/CreateTaskModal";
 import EditTaskModal from "../components/EditTaskModal";
 import "./ProjectsPage.css";
+import FileAttachments from "../components/FileAttachments";
 
 const ProjectDetail = () => {
   const { id } = useParams();
@@ -108,30 +109,56 @@ const ProjectDetail = () => {
             <h4 className="mb-3">Tasks</h4>
             <ul className="list-group list-group-flush">
               {project.tasks.map((t) => (
-                <li key={t.id} className="list-group-item bg-dark text-white border-secondary d-flex justify-content-between align-items-center gap-3">
-                  <div>
-                    <h6 className="mb-1 fw-semibold">
-                      {t.title}
-                      <span className="badge bg-secondary ms-2">{t.priority}</span>
-                      <span className="badge bg-info ms-1">{t.status}</span>
-                    </h6>
-                    {t.dueDate && (
-                      <small className="text-muted d-block">Due: {new Date(t.dueDate).toLocaleDateString()}</small>
-                    )}
-                    {t.assignedUserName && (
-                      <small className="text-muted d-block">Assigned to: {t.assignedUserName}</small>
-                    )}
-                  </div>
-                  {user?.role === "ProjectManager" && (
-                    <button
-                      className="btn btn-sm btn-outline-light"
-                      onClick={() => handleEditClick(t)}
-                    >
-                      Edit
-                    </button>
-                  )}
-                </li>
-              ))}
+  <li
+    key={t.id}
+    className="list-group-item bg-dark text-white border-secondary"
+  >
+    <div className="d-flex justify-content-between align-items-center">
+      
+      <div>
+        <h6 className="mb-1 fw-semibold">
+          {t.title}
+          <span className="badge bg-secondary ms-2">
+            {t.priority}
+          </span>
+          <span className="badge bg-info ms-1">
+            {t.status}
+          </span>
+        </h6>
+
+        {t.dueDate && (
+          <small className="text-muted d-block">
+            Due: {new Date(t.dueDate).toLocaleDateString()}
+          </small>
+        )}
+
+        {t.assignedUserName && (
+          <small className="text-muted d-block">
+            Assigned to: {t.assignedUserName}
+          </small>
+        )}
+      </div>
+
+      {user?.role === "ProjectManager" && (
+        <button
+          className="btn btn-sm btn-outline-light"
+          onClick={() => handleEditClick(t)}
+        >
+          Edit
+        </button>
+      )}
+    </div>
+
+    {/* 🔥 Attachments Component */}
+  <button
+  className="btn btn-sm btn-outline-info ms-2"
+  onClick={() => window.location.href = `/tasks/${t.id}/attachments`}
+>
+  Attachments
+</button>
+
+  </li>
+))}
             </ul>
           </div>
         )}
