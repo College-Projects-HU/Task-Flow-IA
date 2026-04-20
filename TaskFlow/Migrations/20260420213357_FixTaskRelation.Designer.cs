@@ -11,8 +11,8 @@ using TaskFlow.Data;
 namespace TaskFlow.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260419183029_AddAttachments")]
-    partial class AddAttachments
+    [Migration("20260420213357_FixTaskRelation")]
+    partial class FixTaskRelation
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -51,30 +51,6 @@ namespace TaskFlow.Migrations
                     b.HasIndex("TaskId");
 
                     b.ToTable("Attachments");
-                });
-
-            modelBuilder.Entity("TaskFlow.Models.Comment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("TaskId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("TaskFlow.Models.Notification", b =>
@@ -155,6 +131,8 @@ namespace TaskFlow.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AssignedMemberId");
+
                     b.HasIndex("ProjectId");
 
                     b.ToTable("Tasks");
@@ -192,6 +170,34 @@ namespace TaskFlow.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("TaskFlow.models.Comment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TaskId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaskId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Comments");
+                });
+
             modelBuilder.Entity("TaskFlow.Models.Attachment", b =>
                 {
                     b.HasOne("TaskFlow.Models.TaskItem", "Task")
@@ -205,13 +211,38 @@ namespace TaskFlow.Migrations
 
             modelBuilder.Entity("TaskFlow.Models.TaskItem", b =>
                 {
+                    b.HasOne("TaskFlow.Models.User", "AssignedMember")
+                        .WithMany()
+                        .HasForeignKey("AssignedMemberId");
+
                     b.HasOne("TaskFlow.Models.Project", "Project")
                         .WithMany("Tasks")
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("AssignedMember");
+
                     b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("TaskFlow.models.Comment", b =>
+                {
+                    b.HasOne("TaskFlow.Models.TaskItem", "TaskItem")
+                        .WithMany()
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TaskFlow.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TaskItem");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TaskFlow.Models.Project", b =>
