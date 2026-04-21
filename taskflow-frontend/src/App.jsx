@@ -7,6 +7,8 @@ import RoleRoute from "./components/RoleRoute";
 import PrivateRoute from "./components/PrivateRoute";
 import ProjectsPage from "./pages/ProjectsPage";
 import ProjectDetail from "./pages/ProjectDetail";
+import TaskDetailPage from "./pages/TaskDetailPage";
+import StatsPage from "./pages/StatsPage";
 import Dashboard from "./pages/Dashboard";
 import TaskAttachments from "./pages/TaskAttachments";
 import "./App.css";
@@ -41,6 +43,16 @@ function App() {
         <Route path="/Projects" element={<ProjectsPage />} />
         <Route path="/projects/:id" element={<ProjectDetail />} />
         <Route path="/tasks/:taskId/attachments" element={<TaskAttachments />} />
+        <Route path="/tasks/:taskId" element={<TaskDetailPage />} />
+
+        <Route
+          path="/projects/:id/stats"
+          element={
+            <RoleRoute allowedRoles={["ProjectManager"]}>
+              <StatsPage />
+            </RoleRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
