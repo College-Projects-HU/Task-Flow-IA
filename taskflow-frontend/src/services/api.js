@@ -104,4 +104,18 @@ export const getAttachments = async (taskId) => {
   return res.data;
 };
 
+export const getComments = (taskId) =>
+  api.get(`/comments/tasks/${taskId}/comments`);
+
+export const addComment = (taskId, data) =>
+  api.post(`/comments/tasks/${taskId}/comments`, data);
+
+export const deleteComment = (id) =>
+  api.delete(`/comments/comments/${id}`);
+
+// STATS
+export const getProjectStats = (projectId) =>
+  api.get(`/projects/${projectId}/stats`);
+
+
 export default api;

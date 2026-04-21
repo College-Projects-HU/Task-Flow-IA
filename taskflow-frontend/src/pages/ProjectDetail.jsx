@@ -6,11 +6,11 @@ import CreateTaskModal from "../components/CreateTaskModal";
 import EditTaskModal from "../components/EditTaskModal";
 import "./ProjectsPage.css";
 import FileAttachments from "../components/FileAttachments";
-
+import { useNavigate } from "react-router-dom";
 const ProjectDetail = () => {
   const { id } = useParams();
   const { user } = useContext(AuthContext);
-
+   const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   
@@ -157,6 +157,18 @@ const ProjectDetail = () => {
   Attachments
 </button>
 
+<button
+  className="btn btn-primary mt-2"
+  onClick={() => navigate(`/tasks/${t.id}`)}
+>
+  💬 Comments
+</button>
+<button
+  className="btn btn-dark mt-3"
+  onClick={() => navigate(`/projects/${id}/stats`)}
+>
+  📊 View Statistics
+</button>
   </li>
 ))}
             </ul>
