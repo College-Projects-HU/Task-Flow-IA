@@ -10,6 +10,7 @@ import ProjectDetail from "./pages/ProjectDetail";
 import TaskDetailPage from "./pages/TaskDetailPage";
 import StatsPage from "./pages/StatsPage";
 import Dashboard from "./pages/Dashboard";
+import TaskBoard from "./pages/taskboard";
 import TaskAttachments from "./pages/TaskAttachments";
 import "./App.css";
 
@@ -21,7 +22,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        
+        <Route path="/taskboard/:projectId" element={<TaskBoard />} />
         <Route
           path="/dashboard"
           element={
