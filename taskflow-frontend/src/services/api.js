@@ -88,5 +88,34 @@ export const updateTask = async (taskId, taskData) => {
   const res = await api.put(`/tasks/${taskId}`, taskData);
   return res.data;
 };
+// 🔹 UPLOAD attachment
+export const uploadAttachment = (taskId, formData, onUploadProgress) => {
+  return api.post(`/tasks/${taskId}/attachments`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+    onUploadProgress,
+  });
+};
+
+// 🔹 GET attachments
+export const getAttachments = async (taskId) => {
+  const res = await api.get(`/tasks/${taskId}/attachments`);
+  return res.data;
+};
+
+export const getComments = (taskId) =>
+  api.get(`/comments/tasks/${taskId}/comments`);
+
+export const addComment = (taskId, data) =>
+  api.post(`/comments/tasks/${taskId}/comments`, data);
+
+export const deleteComment = (id) =>
+  api.delete(`/comments/comments/${id}`);
+
+// STATS
+export const getProjectStats = (projectId) =>
+  api.get(`/projects/${projectId}/stats`);
+
 
 export default api;

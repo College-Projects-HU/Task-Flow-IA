@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using TaskFlow.Data;
+using TaskFlow.DTOs;
 using TaskFlow.Models;
 
 namespace TaskFlow.Services
@@ -46,6 +47,36 @@ namespace TaskFlow.Services
             project.IsDeleted = true;
             _context.SaveChanges();
         }
+        public async Task<StatsDto> GetProjectStats(int projectId)
+        {
+            var tasks = await _context.Tasks
+                .Include(t => t.AssignedMember)
+                .Where(t => t.ProjectId == projectId)
+                .ToListAsync();
+
+            var stats = new StatsDto
+            {
+                TotalTasks = tasks.Count,
+
+                CompletedTasks = tasks.Count(t => t.Status == TaskFlow.Models.TaskStatus.Done),
+
+                InProgressTasks = tasks.Count(t => t.Status == TaskFlow.Models.TaskStatus.InProgress),
+
+
+                PerMember = tasks
+                    .Where(t => t.Status == TaskFlow.Models.TaskStatus.Done && t.AssignedMember != null)
+                    .GroupBy(t => t.AssignedMember.FullName)
+                    .Select(g => new MemberStatsDto
+                    {
+                        MemberName = g.Key,
+                        CompletedTasks = g.Count()
+                    })
+                    .ToList()
+            };
+
+            return stats;
+        }
+
     }
 
 }

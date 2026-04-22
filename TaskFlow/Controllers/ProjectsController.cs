@@ -19,6 +19,12 @@ namespace TaskFlow.Controllers
         {
             _service = service;
         }
+        [HttpGet("{id}/stats")]
+        public async Task<IActionResult> GetStats(int id)
+        {
+            var stats = await _service.GetProjectStats(id);
+            return Ok(stats);
+        }
 
         [HttpGet]
         public IActionResult GetAll()
