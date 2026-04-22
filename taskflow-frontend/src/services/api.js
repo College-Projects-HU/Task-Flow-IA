@@ -4,7 +4,7 @@ const api = axios.create({
   baseURL: "http://localhost:5218/api",
 });
 
-// 🔐 interceptor
+// 🔐 interceptor - هذا الجزء يضمن إضافة التوكن لكل الطلبات تلقائياً
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -65,7 +65,7 @@ export const getProjectById = async (id) => {
   };
 };
 
-// 🔹 GET project tasks (full task objects)
+// 🔹 GET project tasks (هذه هي الدالة التي ستحتاجينها في TaskBoardPage)
 export const getProjectTasks = async (projectId) => {
   const res = await api.get(`/projects/${projectId}/tasks`);
   return res.data;

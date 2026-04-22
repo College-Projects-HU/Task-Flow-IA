@@ -8,6 +8,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import ProjectsPage from "./pages/ProjectsPage";
 import ProjectDetail from "./pages/ProjectDetail";
 import Dashboard from "./pages/Dashboard";
+import TaskBoard from "./pages/taskboard";
 import "./App.css";
 
 function App() {
@@ -18,7 +19,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        
+        <Route path="/taskboard/:projectId" element={<TaskBoard />} />
         <Route
           path="/dashboard"
           element={
