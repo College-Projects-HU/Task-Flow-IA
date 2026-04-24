@@ -352,6 +352,16 @@
   margin-left: 0;
 }
 
+.taskboard-card-manage {
+  border: 1px solid #d8e3f3;
+  background: #ffffff;
+  color: #17325c;
+  border-radius: 8px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
 .taskboard-empty {
   text-align: center;
   padding: 2rem;

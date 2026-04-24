@@ -161,7 +161,8 @@ namespace TaskFlow.Controllers
             {
                 Title = dto.Title,
                 Description = dto.Description ?? string.Empty,
-                AssignedMemberId = dto.AssignedUserId,
+                CreatedByUserId = GetCurrentUserId() ?? 0,
+                AssignedMemberId = dto.AssignedUserId ?? 0,
                 ProjectId = projectId,
                 Priority = dto.Priority.ToString(),
                 DueDate = dto.DueDate ?? DateTime.UtcNow,
@@ -461,6 +462,10 @@ namespace TaskFlow.Controllers
                 Id = task.Id,
                 Title = task.Title,
                 Description = task.Description,
+                CreatedByUserId = task.CreatedByUserId,
+                CreatedByUserName = assignedUsers.TryGetValue(task.CreatedByUserId, out var ownerName)
+                    ? ownerName ?? string.Empty
+                    : string.Empty,
                 AssignedUserId = task.AssignedMemberId > 0 ? task.AssignedMemberId : null,
                 AssignedUserName = assignedUserName ?? string.Empty,
                 ProjectId = task.ProjectId,

@@ -8,6 +8,9 @@ namespace TaskFlow.Models
 
         public string Title { get; set; }
         public string Description { get; set; }
+        public int CreatedByUserId { get; set; }
+        [ForeignKey("CreatedByUserId")]
+        public User? CreatedByUser { get; set; }
 
         // 1. Foreign Key Property
         public int? AssignedMemberId { get; set; } // مهم

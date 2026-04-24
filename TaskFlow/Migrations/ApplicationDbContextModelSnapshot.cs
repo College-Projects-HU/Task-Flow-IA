@@ -111,6 +111,9 @@ namespace TaskFlow.Migrations
                     b.Property<int?>("AssignedMemberId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("CreatedByUserId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -135,6 +138,8 @@ namespace TaskFlow.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AssignedMemberId");
+
+                    b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("ProjectId");
 
@@ -218,6 +223,12 @@ namespace TaskFlow.Migrations
                         .WithMany()
                         .HasForeignKey("AssignedMemberId");
 
+                    b.HasOne("TaskFlow.Models.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("TaskFlow.Models.Project", "Project")
                         .WithMany("Tasks")
                         .HasForeignKey("ProjectId")
@@ -225,6 +236,8 @@ namespace TaskFlow.Migrations
                         .IsRequired();
 
                     b.Navigation("AssignedMember");
+
+                    b.Navigation("CreatedByUser");
 
                     b.Navigation("Project");
                 });

@@ -8,6 +8,8 @@ namespace TaskFlow.DTOs
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+        public int CreatedByUserId { get; set; }
+        public string CreatedByUserName { get; set; } = string.Empty;
         public int? AssignedUserId { get; set; }
         public string AssignedUserName { get; set; } = string.Empty;
         public int ProjectId { get; set; }

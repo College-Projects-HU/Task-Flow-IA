@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import DashboardLayout from '../components/DashboardLayout';
 import CreateTaskModal from '../components/CreateTaskModal';
@@ -8,6 +9,7 @@ import './TaskBoard.css';
 
 const TaskBoard = () => {
   const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
   
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
@@ -95,6 +97,8 @@ const TaskBoard = () => {
     assignedUserId: task?.assignedUserId ?? task?.AssignedUserId ?? null,
     assignedMemberId: task?.assignedMemberId ?? task?.AssignedMemberId ?? null,
     assignedUserName: task?.assignedUserName ?? task?.AssignedUserName ?? '',
+    createdByUserId: task?.createdByUserId ?? task?.CreatedByUserId ?? null,
+    createdByUserName: task?.createdByUserName ?? task?.CreatedByUserName ?? '',
     commentsCount: task?.comments?.length ?? 0,
     attachmentsCount: task?.attachments?.length ?? 0,
   });
@@ -121,7 +125,7 @@ const TaskBoard = () => {
     };
 
     return (
-      <div className="taskboard-card" onClick={() => handleEditClick(task)}>
+      <div className="taskboard-card" onClick={() => navigate(`/tasks/${task.id}`)}>
         <div className="taskboard-card-project">
           <span className="taskboard-card-project-badge">{task.projectName}</span>
         </div>
@@ -169,6 +173,19 @@ const TaskBoard = () => {
                 {getInitials(task.assignedUserName)}
               </div>
             </div>
+          )}
+
+          {canCreateTask && (
+            <button
+              type="button"
+              className="taskboard-card-manage"
+              onClick={(event) => {
+                event.stopPropagation();
+                handleEditClick(task);
+              }}
+            >
+              Edit
+            </button>
           )}
         </div>
       </div>
