@@ -11,13 +11,8 @@ using TaskFlow.Data;
 namespace TaskFlow.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-<<<<<<<< HEAD:TaskFlow/Migrations/20260424144431_InitialCreateSQLite.Designer.cs
-    [Migration("20260424144431_InitialCreateSQLite")]
-    partial class InitialCreateSQLite
-========
-    [Migration("20260422235514_AddTaskUserForeignKey")]
-    partial class AddTaskUserForeignKey
->>>>>>>> ed76ece102752b0e19a17eadadaadb85e40f62f1:TaskFlow/Migrations/20260422235514_AddTaskUserForeignKey.Designer.cs
+    [Migration("20260422204728_UpdateNotificationTable")]
+    partial class UpdateNotificationTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
