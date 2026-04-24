@@ -36,7 +36,7 @@ function DashboardLayout({ title, subtitle, activeItem, children }) {
             Projects
           </NavLink>
           <NavLink
-            to="/taskboard/1"
+            to="/taskboard"
             className={`dashboard-nav-item ${activeItem === "tasks" ? "active" : ""}`}
           >
             Tasks Board

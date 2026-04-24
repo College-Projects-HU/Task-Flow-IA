@@ -10,6 +10,8 @@ namespace TaskFlow.DTOs
         public string Description { get; set; } = string.Empty;
         public int? AssignedUserId { get; set; }
         public string AssignedUserName { get; set; } = string.Empty;
+        public int ProjectId { get; set; }
+        public string ProjectName { get; set; } = string.Empty;
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public TaskPriority Priority { get; set; }
         public DateTime DueDate { get; set; }

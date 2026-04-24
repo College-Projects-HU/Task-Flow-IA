@@ -1,19 +1,17 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import DashboardLayout from '../components/DashboardLayout';
 import CreateTaskModal from '../components/CreateTaskModal';
 import EditTaskModal from '../components/EditTaskModal';
-import api, { getProjectTasks, getProjectById } from '../services/api';
+import api, { getAllTasks, getProjects } from '../services/api';
 import './TaskBoard.css';
 
 const TaskBoard = () => {
-  const { projectId } = useParams();
   const { user } = useContext(AuthContext);
   
-  const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -21,37 +19,20 @@ const TaskBoard = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
 
-  // Fetch tasks based on user role
+  // Fetch all tasks and projects
   const fetchTasks = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const [projectData, allTasks] = await Promise.all([
-        getProjectById(projectId),
-        getProjectTasks(projectId),
+      const [allTasks, allProjects] = await Promise.all([
+        getAllTasks(),
+        getProjects(),
       ]);
 
-      setProject(projectData);
-
-      // Role-based filtering
-      let visibleTasks = allTasks;
-
-      if (user?.role === 'Member') {
-        // Members can only see tasks assigned to them
-        visibleTasks = allTasks.filter(
-          t => t.assignedUserId === user.id || t.assignedMemberId === user.id
-        );
-      } else if (user?.role === 'ProjectManager') {
-        // ProjectManagers see all tasks in their projects
-        visibleTasks = allTasks;
-      } else if (user?.role === 'Admin') {
-        // Admins see all tasks
-        visibleTasks = allTasks;
-      }
-
-      setTasks(visibleTasks);
-      applyFilters(visibleTasks, searchQuery);
+      setTasks(allTasks);
+      setProjects(allProjects);
+      applyFilters(allTasks, searchQuery);
     } catch (err) {
       console.error('Error fetching tasks:', err);
       setError('Failed to load tasks. Please try again.');
@@ -67,7 +48,8 @@ const TaskBoard = () => {
     if (query.trim()) {
       filtered = filtered.filter(t =>
         t.title.toLowerCase().includes(query.toLowerCase()) ||
-        t.description?.toLowerCase().includes(query.toLowerCase())
+        t.description?.toLowerCase().includes(query.toLowerCase()) ||
+        t.projectName?.toLowerCase().includes(query.toLowerCase())
       );
     }
 
@@ -76,7 +58,7 @@ const TaskBoard = () => {
 
   useEffect(() => {
     fetchTasks();
-  }, [projectId, user?.id]);
+  }, []);
 
   useEffect(() => {
     applyFilters(tasks, searchQuery);
@@ -108,6 +90,8 @@ const TaskBoard = () => {
     priority: task?.priority ?? task?.Priority ?? 'Medium',
     status: task?.status ?? task?.Status ?? 'ToDo',
     dueDate: task?.dueDate ?? task?.DueDate ?? null,
+    projectId: task?.projectId ?? task?.ProjectId ?? null,
+    projectName: task?.projectName ?? task?.ProjectName ?? 'Unknown Project',
     assignedUserId: task?.assignedUserId ?? task?.AssignedUserId ?? null,
     assignedMemberId: task?.assignedMemberId ?? task?.AssignedMemberId ?? null,
     assignedUserName: task?.assignedUserName ?? task?.AssignedUserName ?? '',
@@ -138,6 +122,10 @@ const TaskBoard = () => {
 
     return (
       <div className="taskboard-card" onClick={() => handleEditClick(task)}>
+        <div className="taskboard-card-project">
+          <span className="taskboard-card-project-badge">{task.projectName}</span>
+        </div>
+
         <div className="taskboard-card-header">
           <h5 className="taskboard-card-title">{task.title}</h5>
           <span className={`taskboard-card-priority ${task.priority?.toLowerCase() || 'medium'}`}>
@@ -251,13 +239,16 @@ const TaskBoard = () => {
 
         <div className="taskboard-header">
           <div>
-            <h3>{project?.name || 'Task Board'}</h3>
+            <h3>All Tasks</h3>
+            <p style={{ margin: '0.5rem 0 0', color: '#9ca3af', fontSize: '0.875rem' }}>
+              {filteredTasks.length} task{filteredTasks.length !== 1 ? 's' : ''} across {new Set(filteredTasks.map(t => t.projectId)).size} project{new Set(filteredTasks.map(t => t.projectId)).size !== 1 ? 's' : ''}
+            </p>
           </div>
           <div className="taskboard-header-actions">
             <div className="taskboard-search">
               <input
                 type="text"
-                placeholder="Search tasks..."
+                placeholder="Search tasks by name or project..."
                 value={searchQuery}
                 onChange={handleSearchChange}
               />
@@ -297,14 +288,14 @@ const TaskBoard = () => {
       <CreateTaskModal
         show={showCreateModal}
         handleClose={() => setShowCreateModal(false)}
-        projectId={projectId}
+        projects={projects}
         onTaskCreated={handleTaskCreated}
       />
 
       <EditTaskModal
         show={showEditModal}
         handleClose={() => setShowEditModal(false)}
-        projectId={projectId}
+        projectId={selectedTask?.projectId}
         task={selectedTask}
         onTaskUpdated={handleTaskUpdated}
       />

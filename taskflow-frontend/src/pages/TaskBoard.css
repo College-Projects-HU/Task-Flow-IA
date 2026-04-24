@@ -208,6 +208,28 @@
   transform: translateY(-2px);
 }
 
+.taskboard-card-project {
+  display: flex;
+  margin: -1rem -1rem 0.5rem -1rem;
+  padding: 0.5rem 1rem;
+  background: #f3f7fc;
+  border-bottom: 1px solid #e5e7eb;
+  border-radius: 8px 8px 0 0;
+}
+
+.taskboard-card-project-badge {
+  display: inline-block;
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .taskboard-card-header {
   display: flex;
   justify-content: space-between;
