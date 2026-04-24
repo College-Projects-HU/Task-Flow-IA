@@ -1,22 +1,17 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import api, { getProjects, getProjectTasks } from "../services/api";
+import DashboardLayout from "../components/DashboardLayout";
 import "./Dashboard.css";
 
 export default function Dashboard() {
-  const { user, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [projects, setProjects] = useState([]);
   const [allTasks, setAllTasks] = useState([]);
   const [pendingUsers, setPendingUsers] = useState([]);
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -136,40 +131,11 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="dashboard-shell">
-      <aside className="dashboard-sidebar">
-        <div className="dashboard-brand">TaskFlow</div>
-        <nav className="dashboard-nav">
-          <Link to="/dashboard" className="dashboard-nav-item active">
-            Dashboard
-          </Link>
-          <Link to="/Projects" className="dashboard-nav-item">
-            Projects
-          </Link>
-          <Link to="/taskboard/1" className="dashboard-nav-item">
-            Tasks Board
-          </Link>
-          {role === "Admin" && (
-            <Link to="/admin" className="dashboard-nav-item">
-              Approvals
-            </Link>
-          )}
-        </nav>
-      </aside>
-
-      <main className="dashboard-main">
-        <header className="dashboard-topbar">
-          <div>
-            <h2>Dashboard</h2>
-            <p>
-              Welcome {user?.name || user?.email} ({role})
-            </p>
-          </div>
-          <button className="dashboard-logout" onClick={handleLogout}>
-            Logout
-          </button>
-        </header>
-
+    <DashboardLayout
+      title="Dashboard"
+      activeItem="dashboard"
+      subtitle={`Welcome ${user?.name || user?.email} (${role})`}
+    >
         {error && <div className="dashboard-error">{error}</div>}
 
         <section className="dashboard-kpis">
@@ -289,7 +255,6 @@ export default function Dashboard() {
             </article>
           )}
         </section>
-      </main>
-    </div>
+    </DashboardLayout>
   );
 }
