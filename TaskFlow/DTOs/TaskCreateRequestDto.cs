@@ -7,8 +7,10 @@ namespace TaskFlow.DTOs
     public class TaskCreateRequestDto
     {
         [Required]
+        [MaxLength(200)]
         public string Title { get; set; } = string.Empty;
 
+        [MaxLength(1000)]
         public string? Description { get; set; }
 
         public int? AssignedUserId { get; set; }

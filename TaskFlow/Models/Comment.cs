@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using TaskFlow.Models;
 
-namespace TaskFlow.models
+namespace TaskFlow.Models
 {
     public class Comment
     {

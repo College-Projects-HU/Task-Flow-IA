@@ -15,19 +15,34 @@ namespace TaskFlow.Services
             _context = context;
         }
 
-        public List<Project> GetAll()
+        public List<Project> GetAll(int userId, string role)
         {
-            return _context.Projects
+            var query = _context.Projects
                 .Include(p => p.Tasks) 
                 .Where(p => !p.IsDeleted)
-                .ToList();
+                .AsQueryable();
+
+            if (role == "Member")
+            {
+                query = query.Where(p => p.Tasks.Any(t => t.AssignedMemberId == userId));
+            }
+
+            return query.ToList();
         }
 
-        public Project GetById(int id)
+        public Project GetById(int id, int userId, string role)
         {
-            return _context.Projects
+            var query = _context.Projects
                 .Include(p => p.Tasks) 
-                .FirstOrDefault(p => p.Id == id && !p.IsDeleted);
+                .Where(p => p.Id == id && !p.IsDeleted)
+                .AsQueryable();
+
+            if (role == "Member")
+            {
+                query = query.Where(p => p.Tasks.Any(t => t.AssignedMemberId == userId));
+            }
+
+            return query.FirstOrDefault()!;
         }
 
         public Project Create(Project project)

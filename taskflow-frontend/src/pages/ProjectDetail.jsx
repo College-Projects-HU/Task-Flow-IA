@@ -152,7 +152,7 @@ const ProjectDetail = () => {
     {/* 🔥 Attachments Component */}
   <button
   className="btn btn-sm btn-outline-info ms-2"
-  onClick={() => window.location.href = `/tasks/${t.id}/attachments`}
+  onClick={() => navigate(`/tasks/${t.id}/attachments`)}
 >
   Attachments
 </button>

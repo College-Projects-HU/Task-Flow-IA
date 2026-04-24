@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getProjectTasks } from "../services/api";
+import { getTaskById } from "../services/api";
 import CommentsSection from "../components/CommentsSection";
 
 function TaskDetailPage() {
@@ -13,11 +14,7 @@ function TaskDetailPage() {
       try {
         setLoading(true);
 
-        // 🔥 مؤقت (لو معندكش API مباشر للتاسك)
-        const tasks = await getProjectTasks(1);
-
-        const found = tasks.find((t) => t.id == taskId);
-
+        const found = await getTaskById(taskId); // Directly fetch the specific task
         setTask(found);
       } catch (err) {
         console.error("Error loading task:", err);
