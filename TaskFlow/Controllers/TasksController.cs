@@ -171,6 +171,15 @@ namespace TaskFlow.Controllers
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
 
+            if (task.AssignedMemberId.HasValue && task.AssignedMemberId.Value > 0)
+            {
+                await _notificationService.SendTaskNotification(
+                    task.AssignedMemberId.Value.ToString(),
+                    $"You have been assigned a new task: {task.Title}",
+                    task.Id
+                );
+            }
+
             var assignedUsers = await _context.Users
                 .Select(u => new { u.Id, u.FullName })
                 .ToDictionaryAsync(u => u.Id, u => u.FullName);
@@ -195,6 +204,8 @@ namespace TaskFlow.Controllers
             {
                 return NotFound(new { message = "Project not found or you do not have access to it." });
             }
+
+            var previousAssignedUserId = task.AssignedMemberId;
 
             if (dto.AssignedUserId.HasValue)
             {
@@ -233,6 +244,17 @@ namespace TaskFlow.Controllers
             }
 
             await _context.SaveChangesAsync();
+
+            if (dto.AssignedUserId.HasValue &&
+                dto.AssignedUserId.Value > 0 &&
+                previousAssignedUserId != dto.AssignedUserId.Value)
+            {
+                await _notificationService.SendTaskNotification(
+                    dto.AssignedUserId.Value.ToString(),
+                    $"You have been assigned a new task: {task.Title}",
+                    task.Id
+                );
+            }
 
             var assignedUsers = await _context.Users
                 .Select(u => new { u.Id, u.FullName })

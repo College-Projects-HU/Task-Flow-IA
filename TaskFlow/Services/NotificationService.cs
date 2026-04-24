@@ -19,10 +19,9 @@ namespace TaskFlow.Services
 
         public async Task SendTaskNotification(string userId, string message, int taskId)
         {
-            // 1. حفظ الإشعار في الداتابيز
             var notification = new Notification
             {
-                UserId = int.Parse(userId), // تأكدي من نوع الـ ID عندك
+                UserId = int.Parse(userId),
                 Message = message,
                 TaskId = taskId,
                 IsRead = false
@@ -31,13 +30,7 @@ namespace TaskFlow.Services
             _context.Notifications.Add(notification);
             await _context.SaveChangesAsync();
 
-            // 2. إرسال الإشعار للـ Hub عشان يوصل لليوزر (Real-time)
-            var connectionId = NotificationHub.GetConnectionId(userId);
-
-            if (connectionId != null)
-            {
-                await _hubContext.Clients.Client(connectionId).SendAsync("NewNotification", notification);
-            }
+            await _hubContext.Clients.User(userId).SendAsync("NewNotification", notification);
         }
     }
 }

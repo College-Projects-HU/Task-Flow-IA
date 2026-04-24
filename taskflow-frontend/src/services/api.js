@@ -4,6 +4,9 @@ const api = axios.create({
   baseURL: "http://localhost:5218/api",
 });
 
+export const API_BASE_URL = api.defaults.baseURL;
+export const API_ORIGIN = new URL(API_BASE_URL).origin;
+
 // 🔐 interceptor - هذا الجزء يضمن إضافة التوكن لكل الطلبات تلقائياً
 api.interceptors.request.use(
   (config) => {
@@ -121,5 +124,14 @@ export const deleteComment = (id) => api.delete(`/comments/comments/${id}`);
 // STATS
 export const getProjectStats = (projectId) =>
   api.get(`/projects/${projectId}/stats`);
+
+export const getNotifications = async () => {
+  const res = await api.get("/notifications");
+  return res.data;
+};
+
+export const markNotificationAsRead = async (notificationId) => {
+  await api.patch(`/notifications/${notificationId}/read`);
+};
 
 export default api;

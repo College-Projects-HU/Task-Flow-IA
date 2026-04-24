@@ -107,6 +107,114 @@
   gap: 0.6rem;
 }
 
+.notification-container {
+  position: relative;
+}
+
+.notification-trigger {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #dbe4f0;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.notification-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.notification-trigger:hover {
+  background: #f8fbff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -6px;
+  right: -7px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: calc(100% + 0.65rem);
+  right: 0;
+  width: min(360px, 80vw);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+  z-index: 20;
+}
+
+.notification-dropdown-header {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.notification-empty {
+  margin: 0;
+  padding: 1rem;
+  color: #6b7280;
+}
+
+.notification-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #eef2f7;
+  background: #ffffff;
+  padding: 0.9rem 1rem;
+  text-align: left;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.notification-item:last-child {
+  border-bottom: 0;
+}
+
+.notification-item.unread {
+  background: #eff6ff;
+}
+
+.notification-item:hover {
+  background: #f8fafc;
+}
+
+.notification-message {
+  color: #1f2937;
+  font-size: 0.92rem;
+}
+
+.notification-time {
+  color: #6b7280;
+  font-size: 0.78rem;
+}
+
 .dashboard-logout {
   border: none;
   background: #ef4444;
@@ -258,6 +366,28 @@
   padding: 0.45rem 0.8rem;
   border-radius: 8px;
   font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .dashboard-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .dashboard-topbar {
+    align-items: flex-start;
+    gap: 1rem;
+    flex-direction: column;
+  }
+
+  .dashboard-topbar-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
 }
 
 .dashboard-error {

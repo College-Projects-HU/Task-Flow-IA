@@ -1,11 +1,14 @@
 import { useContext } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import NotificationBell from "./NotificationBell";
+import useNotifications from "../hooks/useNotifications";
 import "../pages/Dashboard.css";
 
 function DashboardLayout({ title, subtitle, activeItem, children }) {
-  const { user, logout } = useContext(AuthContext);
+  const { user, token, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const { notifications, markAsRead } = useNotifications(token);
 
   const handleLogout = () => {
     logout();
@@ -61,9 +64,10 @@ function DashboardLayout({ title, subtitle, activeItem, children }) {
             </p>
           </div>
           <div className="dashboard-topbar-actions">
-            <Link to="/dashboard" className="dashboard-link-btn">
-              Home
-            </Link>
+            <NotificationBell
+              notifications={notifications}
+              onNotificationRead={markAsRead}
+            />
             <button className="dashboard-logout" onClick={handleLogout}>
               Logout
             </button>
