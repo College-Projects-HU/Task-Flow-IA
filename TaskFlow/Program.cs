@@ -6,6 +6,7 @@ using System.Text;
 using TaskFlow.Data;
 using TaskFlow.Interfaces;
 using TaskFlow.Services;
+using TaskFlow.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,7 +45,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:5173") // تأكدي من بورت الـ Vite بتاعك
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -87,6 +89,10 @@ builder.Services.Configure<FormOptions>(options =>
 {
     options.MultipartBodyLengthLimit = 10485760; // 10MB
 });
+builder.Services.AddSignalR();
+
+// في جزء الـ builder.Services في الـ Program.cs
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 var app = builder.Build();
 
@@ -114,7 +120,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 using (var scope = app.Services.CreateScope())
 {
