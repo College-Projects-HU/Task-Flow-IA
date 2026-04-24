@@ -47,6 +47,56 @@ namespace TaskFlow.Controllers
             return Ok(response);
         }
 
+        [HttpGet("tasks")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetAllTasks()
+        {
+            var userId = GetCurrentUserId();
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
+
+            var assignedUsers = await _context.Users
+                .Select(u => new { u.Id, u.FullName })
+                .ToDictionaryAsync(u => u.Id, u => u.FullName);
+
+            var projects = await _context.Projects
+                .Select(p => new { p.Id, p.Name })
+                .ToDictionaryAsync(p => p.Id, p => p.Name);
+
+            IQueryable<TaskItem> tasksQuery = _context.Tasks;
+
+            // Role-based filtering
+            if (userRole == "Member")
+            {
+                // Members see only tasks assigned to them
+                tasksQuery = tasksQuery.Where(t => t.AssignedMemberId == userId);
+            }
+            else if (userRole == "ProjectManager")
+            {
+                // ProjectManagers see all tasks in their projects
+                var pmProjects = await _context.Projects
+                    .Where(p => p.ProjectManagerId == userId)
+                    .Select(p => p.Id)
+                    .ToListAsync();
+
+                tasksQuery = tasksQuery.Where(t => pmProjects.Contains(t.ProjectId));
+            }
+            // Admins see all tasks (no filter)
+
+            var tasks = await tasksQuery
+                .OrderBy(t => t.DueDate)
+                .ToListAsync();
+
+            var response = tasks
+                .Select(task => MapTaskResponse(
+                    task,
+                    assignedUsers,
+                    projects.ContainsKey(task.ProjectId) ? projects[task.ProjectId] : "Unknown Project"
+                ))
+                .ToList();
+
+            return Ok(response);
+        }
+
         [HttpGet("tasks/{id:int}")]
         public async Task<ActionResult<TaskResponseDto>> GetTaskById(int id)
         {
@@ -84,7 +134,7 @@ namespace TaskFlow.Controllers
                 })
                 .ToListAsync();
 
-            var response = MapTaskResponse(task, assignedUsers, comments, attachments);
+            var response = MapTaskResponse(task, assignedUsers, comments: comments, attachments: attachments);
             return Ok(response);
         }
 
@@ -212,7 +262,7 @@ namespace TaskFlow.Controllers
                 })
                 .ToListAsync();
 
-            var response = MapTaskResponse(task, assignedUsers, comments, attachments);
+            var response = MapTaskResponse(task, assignedUsers, comments: comments, attachments: attachments);
             return Ok(response);
         }
 
@@ -317,20 +367,36 @@ namespace TaskFlow.Controllers
         // M3: Get Project Members
         // ==============================
         [HttpGet("projects/{id:int}/members")]
-        [Authorize(Roles = "ProjectManager")]
+        [Authorize]
         public async Task<IActionResult> GetProjectMembers(int id)
         {
             var projectExists = await _context.Projects.AnyAsync(p => p.Id == id);
-
             if (!projectExists)
                 return NotFound(new { message = "Project not found." });
 
-            var members = await _context.Users
-                .Where(u => u.Role == Role.Member) // return members only that belong to that project
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
+
+            IQueryable<User> membersQuery = _context.Users.Where(u => u.Role == Role.Member);
+
+            if (userRole == "ProjectManager")
+            {
+                // ProjectManagers can assign any member to tasks
+                // Return all members
+            }
+            else if (userRole == "Member")
+            {
+                // Members can only see themselves (for their own tasks)
+                var userId = GetCurrentUserId();
+                membersQuery = membersQuery.Where(u => u.Id == userId);
+            }
+            // Admins can see all members
+
+            var members = await membersQuery
                 .Select(u => new
                 {
                     u.Id,
-                    u.FullName
+                    u.FullName,
+                    u.Email
                 })
                 .ToListAsync();
 
@@ -358,12 +424,13 @@ namespace TaskFlow.Controllers
         private static TaskResponseDto MapTaskResponse(
             TaskItem task,
             IReadOnlyDictionary<int, string> assignedUsers,
+            string projectName = "",
             List<TaskCommentResponseDto>? comments = null,
             List<TaskAttachmentResponseDto>? attachments = null)
         {
             string assignedUserName = string.Empty;
 
-            if (task.AssignedMemberId.HasValue)
+            if (task.AssignedMemberId.HasValue && task.AssignedMemberId > 0)
             {
                 assignedUsers.TryGetValue(task.AssignedMemberId.Value, out assignedUserName);
             }
@@ -374,6 +441,8 @@ namespace TaskFlow.Controllers
                 Description = task.Description,
                 AssignedUserId = task.AssignedMemberId > 0 ? task.AssignedMemberId : null,
                 AssignedUserName = assignedUserName ?? string.Empty,
+                ProjectId = task.ProjectId,
+                ProjectName = projectName,
                 Priority = ParsePriority(task.Priority),
                 DueDate = task.DueDate,
                 Status = task.Status,

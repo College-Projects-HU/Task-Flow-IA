@@ -15,7 +15,7 @@ api.interceptors.request.use(
 
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // 🔹 GET projects
@@ -61,13 +61,19 @@ export const getProjectById = async (id) => {
     description: p.description,
     taskCount: p.tasks?.length || 0,
     createdAt: p.createdAt || "2026-04-01",
-    tasks: p.tasks || []
+    tasks: p.tasks || [],
   };
 };
 
-// 🔹 GET project tasks (هذه هي الدالة التي ستحتاجينها في TaskBoardPage)
+// 🔹 GET project tasks (specific project)
 export const getProjectTasks = async (projectId) => {
   const res = await api.get(`/projects/${projectId}/tasks`);
+  return res.data;
+};
+
+// 🔹 GET all tasks (general view with project info)
+export const getAllTasks = async () => {
+  const res = await api.get(`/tasks`);
   return res.data;
 };
 
@@ -110,12 +116,10 @@ export const getComments = (taskId) =>
 export const addComment = (taskId, data) =>
   api.post(`/comments/tasks/${taskId}/comments`, data);
 
-export const deleteComment = (id) =>
-  api.delete(`/comments/comments/${id}`);
+export const deleteComment = (id) => api.delete(`/comments/comments/${id}`);
 
 // STATS
 export const getProjectStats = (projectId) =>
   api.get(`/projects/${projectId}/stats`);
-
 
 export default api;

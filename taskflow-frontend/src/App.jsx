@@ -22,7 +22,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/taskboard/:projectId" element={<TaskBoard />} />
+        <Route path="/taskboard" element={<TaskBoard />} />
         <Route
           path="/dashboard"
           element={

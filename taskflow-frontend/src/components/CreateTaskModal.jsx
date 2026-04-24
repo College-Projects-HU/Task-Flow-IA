@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { getProjectMembers, createTask } from "../services/api";
 
-const CreateTaskModal = ({ show, handleClose, projectId, onTaskCreated }) => {
+const CreateTaskModal = ({ show, handleClose, projects = [], projectId, onTaskCreated }) => {
   const [form, setForm] = useState({
+    projectId: projectId || "",
     title: "",
     description: "",
     priority: "Medium",
@@ -16,6 +17,7 @@ const CreateTaskModal = ({ show, handleClose, projectId, onTaskCreated }) => {
 
   const resetForm = () => {
     setForm({
+      projectId: projectId || "",
       title: "",
       description: "",
       priority: "Medium",
@@ -25,22 +27,40 @@ const CreateTaskModal = ({ show, handleClose, projectId, onTaskCreated }) => {
     setError("");
   };
 
+  // Load members when project is selected
   useEffect(() => {
-    if (show && projectId) {
-      getProjectMembers(projectId)
+    if (form.projectId) {
+      getProjectMembers(form.projectId)
         .then((data) => setMembers(data))
-        .catch((err) => console.error("Failed to load members", err));
-    } else if (!show) {
+        .catch((err) => {
+          console.error("Failed to load members", err);
+          setMembers([]);
+        });
+    }
+  }, [form.projectId, show]);
+
+  useEffect(() => {
+    if (!show) {
       resetForm();
     }
-  }, [show, projectId]);
+  }, [show]);
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setForm({
       ...form,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
     setError(""); // clear error on change
+
+    // Reset members and assignedUserId when project changes
+    if (name === "projectId") {
+      setForm((prevForm) => ({
+        ...prevForm,
+        projectId: value,
+        assignedUserId: "",
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -48,6 +68,11 @@ const CreateTaskModal = ({ show, handleClose, projectId, onTaskCreated }) => {
 
     if (!form.title.trim()) {
       setError("Title is required.");
+      return;
+    }
+
+    if (!form.projectId) {
+      setError("Please select a project.");
       return;
     }
 
@@ -74,7 +99,7 @@ const CreateTaskModal = ({ show, handleClose, projectId, onTaskCreated }) => {
         assignedUserId: form.assignedUserId ? parseInt(form.assignedUserId, 10) : null,
       };
 
-      await createTask(projectId, payload);
+      await createTask(form.projectId, payload);
       await onTaskCreated();
       handleClose();
       resetForm();
@@ -87,6 +112,8 @@ const CreateTaskModal = ({ show, handleClose, projectId, onTaskCreated }) => {
   };
 
   if (!show) return null;
+
+  const isProjectMode = !projectId; // If projectId not provided, user must select project
 
   return (
     <>
@@ -108,6 +135,31 @@ const CreateTaskModal = ({ show, handleClose, projectId, onTaskCreated }) => {
             <form onSubmit={handleSubmit}>
               <div className="modal-body">
                 {error && <div className="alert alert-danger p-2">{error}</div>}
+                
+                {isProjectMode && (
+                  <div className="mb-3">
+                    <label className="form-label">Project *</label>
+                    <select
+                      name="projectId"
+                      className="form-select"
+                      value={form.projectId}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">-- Select a project --</option>
+                      {projects.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                    {projects.length === 0 && (
+                      <small className="text-muted">
+                        No projects available. Please create a project first from the Projects page.
+                      </small>
+                    )}
+                  </div>
+                )}
                 
                 <div className="mb-3">
                   <label className="form-label">Title *</label>
@@ -173,8 +225,16 @@ const CreateTaskModal = ({ show, handleClose, projectId, onTaskCreated }) => {
                         {m.fullName || m.name || m.email || m.username}
                       </option>
                     ))}
-                  </select>
-                </div>
+                  </select>                  {form.projectId && members.length === 0 && (
+                    <small className="text-muted">
+                      No members available for this project.
+                    </small>
+                  )}
+                  {!form.projectId && isProjectMode && (
+                    <small className="text-muted">
+                      Select a project first to load available members.
+                    </small>
+                  )}                </div>
               </div>
 
               <div className="modal-footer border-0 d-flex justify-content-between">
