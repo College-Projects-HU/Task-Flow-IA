@@ -37,24 +37,7 @@ namespace TaskFlow.Controllers
 
             var projects = _service.GetAll(userId, userRole ?? string.Empty);
 
-            // Role-based filtering
-            if (userRole == "ProjectManager")
-            {
-                // ProjectManagers see only projects they manage
-                projects = projects.Where(p => p.ProjectManagerId == userId).ToList();
-            }
-            else if (userRole == "Member")
-            {
-                // Members see only projects they have tasks in
-                var memberProjectIds = _context.Tasks
-                    .Where(t => t.AssignedMemberId == userId)
-                    .Select(t => t.ProjectId)
-                    .Distinct()
-                    .ToList();
-
-                projects = projects.Where(p => memberProjectIds.Contains(p.Id)).ToList();
-            }
-            // Admins see all projects (no filtering)
+            // Filtering is already handled inside ProjectService
 
             var result = projects.Select(p => new ProjectDto
             {

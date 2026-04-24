@@ -22,7 +22,11 @@ namespace TaskFlow.Services
                 .Where(p => !p.IsDeleted)
                 .AsQueryable();
 
-            if (role == "Member")
+            if (role == "ProjectManager")
+            {
+                query = query.Where(p => p.ProjectManagerId == userId);
+            }
+            else if (role == "Member")
             {
                 query = query.Where(p => p.Tasks.Any(t => t.AssignedMemberId == userId));
             }
@@ -37,7 +41,11 @@ namespace TaskFlow.Services
                 .Where(p => p.Id == id && !p.IsDeleted)
                 .AsQueryable();
 
-            if (role == "Member")
+            if (role == "ProjectManager")
+            {
+                query = query.Where(p => p.ProjectManagerId == userId);
+            }
+            else if (role == "Member")
             {
                 query = query.Where(p => p.Tasks.Any(t => t.AssignedMemberId == userId));
             }

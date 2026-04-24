@@ -97,6 +97,13 @@ export const updateTask = async (taskId, taskData) => {
   const res = await api.put(`/tasks/${taskId}`, taskData);
   return res.data;
 };
+
+// 🔹 GET task by id
+export const getTaskById = async (taskId) => {
+  const res = await api.get(`/tasks/${taskId}`);
+  return res.data;
+};
+
 // 🔹 UPLOAD attachment
 export const uploadAttachment = (taskId, formData, onUploadProgress) => {
   return api.post(`/tasks/${taskId}/attachments`, formData, {

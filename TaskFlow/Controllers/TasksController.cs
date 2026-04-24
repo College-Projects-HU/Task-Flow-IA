@@ -161,7 +161,7 @@ namespace TaskFlow.Controllers
             {
                 Title = dto.Title,
                 Description = dto.Description ?? string.Empty,
-                AssignedMemberId = dto.AssignedUserId ?? 0,
+                AssignedMemberId = dto.AssignedUserId,
                 ProjectId = projectId,
                 Priority = dto.Priority.ToString(),
                 DueDate = dto.DueDate ?? DateTime.UtcNow,
