@@ -1,56 +1,52 @@
-/* 🌌 Background */
 .projects-page {
-  min-height: 100vh;
-  padding: 30px;
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem;
 }
 
-/* 🧱 Header */
 .projects-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 1rem;
 }
 
 .projects-title {
-  color: white;
-  font-weight: bold;
+  color: #111827;
+  font-weight: 700;
+  margin: 0;
 }
 
-/* ➕ Button */
 .create-btn {
-  background: white;
-  color: #1e3c72;
+  background: #111827;
+  color: #ffffff;
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 8px 16px;
   font-weight: 600;
-  transition: 0.3s;
+  transition: 0.2s;
   margin-left: 20px;
 }
 
 .create-btn:hover {
-  background: #f1f1f1;
-  transform: scale(1.03);
+  background: #1f2937;
 }
 
-/* 🧊 Project Card */
 .project-card {
-  border-radius: 20px;
+  border-radius: 16px;
   margin-left: 10px;
   margin-right: 10px;
-  backdrop-filter: blur(15px);
-  background: rgba(255, 255, 255, 0.12);
-  color: rgb(129, 129, 199);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #f8fafc;
+  color: #334155;
+  border: 1px solid #e2e8f0;
   transition: 0.3s;
   cursor: pointer;
 }
 
 .project-card:hover {
-  transform: scale(1.05);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
 }
 
 /* 📄 Card Content */
@@ -60,19 +56,18 @@
 }
 
 .project-desc {
-  opacity: 0.8;
+  opacity: 0.9;
   margin-bottom: 10px;
 }
 
 .project-meta {
   font-size: 14px;
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
-/* 📭 Empty State */
 .empty-state {
   text-align: center;
-  color: white;
+  color: #6b7280;
   margin-top: 50px;
 }
 
@@ -95,16 +90,12 @@
   border-radius: 10px;
 }
 
-/* 📱 Responsive Fixes */
-
-/* 📦 Container padding */
 @media (max-width: 768px) {
   .projects-page {
-    padding: 15px;
+    padding: 1rem;
   }
 }
 
-/* 🧱 Header stack بدل ما يزق */
 @media (max-width: 576px) {
   .projects-header {
     flex-direction: column;
@@ -119,7 +110,6 @@
   }
 }
 
-/* 🧊 Card spacing */
 @media (max-width: 768px) {
   .project-card {
     margin-left: 0;
@@ -127,7 +117,6 @@
   }
 }
 
-/* 🧾 Card text */
 @media (max-width: 576px) {
   .project-title {
     font-size: 16px;
@@ -142,7 +131,6 @@
   }
 }
 
-/* 🧾 Modal fix */
 @media (max-width: 576px) {
   .modal-dialog {
     margin: 10px;
@@ -153,7 +141,6 @@
   }
 }
 
-/* 📭 Empty state */
 @media (max-width: 576px) {
   .empty-state h4 {
     font-size: 18px;

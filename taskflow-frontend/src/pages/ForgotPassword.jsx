@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import forgotPasswordImage from "../assets/forgot password.png";
+import "./Login.css";
 
 function ForgotPassword() {
   const navigate = useNavigate();
-
   const [step, setStep] = useState(1);
-
   const [formData, setFormData] = useState({
     email: "",
     otp: "",
@@ -14,190 +14,221 @@ function ForgotPassword() {
   });
 
   const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const progress = (step / 3) * 100;
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
-  const nextStep = () => setStep(step + 1);
+  const validateStep = () => {
+    const newErrors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (step === 1) {
+      if (!formData.email) {
+        newErrors.email = "Required";
+      } else if (!emailRegex.test(formData.email)) {
+        newErrors.email = "Invalid email format";
+      }
+    }
+
+    if (step === 2 && !formData.otp) {
+      newErrors.otp = "Required";
+    }
+
+    if (step === 3) {
+      if (!formData.newPassword) {
+        newErrors.newPassword = "Required";
+      } else if (formData.newPassword.length < 6) {
+        newErrors.newPassword = "Password must be at least 6 characters";
+      }
+
+      if (!formData.confirmPassword) {
+        newErrors.confirmPassword = "Required";
+      } else if (formData.newPassword !== formData.confirmPassword) {
+        newErrors.confirmPassword = "Passwords do not match";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const nextStep = () => {
+    if (!validateStep()) return;
+    setStep(step + 1);
+  };
+
   const prevStep = () => setStep(step - 1);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!validateStep()) return;
+
     setIsLoading(true);
 
     setTimeout(() => {
       setIsLoading(false);
+      alert("Password reset successfully.");
       navigate("/");
-    }, 1000);
+    }, 900);
   };
 
   return (
-    <div
-      className="d-flex justify-content-center align-items-center vh-100"
-      style={{
-        background: "linear-gradient(135deg, #8c8ca5, #0749ac)",
-      }}
-    >
-      <div
-        className="card p-4 shadow"
-        style={{
-          width: "400px",
-          borderRadius: "15px",
-          background: "rgba(132, 132, 139, 0.39)",
-          color: "white",
-        }}
-      >
-        {/* Progress */}
-        <div className="progress mb-2" style={{ height: "6px" }}>
+    <div className="auth-container">
+      <div className="auth-header">
+        <div className="auth-logo-icon"></div>
+        <span className="auth-brand-name">Flowbit</span>
+      </div>
+
+      <div className="auth-content row m-0">
+        <div className="col-lg-6 auth-image-col">
+          <img
+            src={forgotPasswordImage}
+            alt="Forgot Password Illustration"
+            className="auth-image"
+          />
+        </div>
+
+        <div className="col-lg-6 auth-form-col">
+          <h3 className="auth-title">Forgot Password</h3>
+          <p className="auth-subtitle">
+            Reset your password in three quick steps.
+          </p>
+
           <div
-            className="progress-bar"
-            style={{
-              width: `${progress}%`,
-              background: "linear-gradient(90deg, #3787ff, #001a8d)",
-            }}
-          ></div>
-        </div>
-
-        {/* Steps */}
-        <div className="d-flex justify-content-between mb-3">
-          {[1, 2, 3].map((num) => (
+            className="progress mb-4"
+            style={{ height: "4px", backgroundColor: "#e5e7eb" }}
+          >
             <div
-              key={num}
-              className="d-flex align-items-center justify-content-center"
+              className="progress-bar"
               style={{
-                width: "28px",
-                height: "28px",
-                borderRadius: "50%",
-                background:
-                  step >= num ? "#033092" : "rgba(255,255,255,0.2)",
-                fontSize: "12px",
-                fontWeight: "bold",
+                width: `${progress}%`,
+                backgroundColor: "#111827",
+                transition: "width 0.3s ease",
               }}
-            >
-              {num}
-            </div>
-          ))}
-        </div>
+            ></div>
+          </div>
 
-        <h3 className="text-center">Reset Password</h3>
-        <p className="text-center opacity-75">Step {step}/3</p>
+          <div className="auth-step-meta">Step {step} of 3</div>
 
-        <form onSubmit={handleSubmit}>
-          {/* STEP 1 */}
-          {step === 1 && (
-            <>
-              <input
-                className="form-control mb-3"
-                name="email"
-                placeholder="Email"
-                onChange={handleChange}
-              />
-              <small className="text-danger">{errors.email}</small>
-
-              <button
-                type="button"
-                className="btn w-100 mt-2 text-white"
-                style={{
-                  background:
-                    "linear-gradient(90deg, #0f6bb6, #0349a5)",
-                }}
-                onClick={nextStep}
-              >
-                Send Code
-              </button>
-            </>
-          )}
-
-          {/* STEP 2 */}
-          {step === 2 && (
-            <>
-              <input
-                className="form-control mb-4"
-                name="otp"
-                placeholder="Enter OTP"
-                onChange={handleChange}
-              />
-
-              <button
-                type="button"
-                className="btn w-100 mb-3 text-white"
-                style={{
-                  background:
-                    "linear-gradient(90deg, #0f6bb6, #0349a5)",
-                }}
-                onClick={nextStep}
-              >
-                Verify
-              </button>
-
-              <button
-                type="button"
-                className="btn btn-secondary w-100"
-                onClick={prevStep}
-              >
-                Back
-              </button>
-            </>
-          )}
-
-          {/* STEP 3 */}
-          {step === 3 && (
-            <>
-              <div className="position-relative">
+          <form onSubmit={handleSubmit}>
+            {step === 1 && (
+              <div className="auth-input-group">
+                <label className="auth-label">Email</label>
                 <input
-                  className="form-control mb-4"
-                  type={showPassword ? "text" : "password"}
-                  name="newPassword"
-                  placeholder="New Password"
+                  className="auth-input"
+                  name="email"
+                  type="email"
+                  value={formData.email}
                   onChange={handleChange}
                 />
-
-                <span
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{
-                    position: "absolute",
-                    right: "10px",
-                    top: "10px",
-                    cursor: "pointer",
-                  }}
-                >
-                  {showPassword ? "🙈" : "👁️"}
-                </span>
+                <small className="text-danger">{errors.email}</small>
               </div>
+            )}
 
-              <input
-                className="form-control mb-4"
-                type="password"
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                onChange={handleChange}
-              />
+            {step === 2 && (
+              <div className="auth-input-group">
+                <label className="auth-label">Verification Code</label>
+                <input
+                  className="auth-input"
+                  name="otp"
+                  value={formData.otp}
+                  onChange={handleChange}
+                />
+                <small className="text-danger">{errors.otp}</small>
+              </div>
+            )}
 
-              <button
-                type="submit"
-                className="btn w-100 text-white"
-                style={{
-                  background:
-                    "linear-gradient(90deg, #0f6bb6, #0349a5)",
-                }}
-                disabled={isLoading}
-              >
-                {isLoading ? "Loading..." : "Reset Password"}
-              </button>
-            </>
-          )}
-        </form>
+            {step === 3 && (
+              <>
+                <div className="auth-input-group password-wrapper">
+                  <label className="auth-label">New Password</label>
+                  <input
+                    className="auth-input"
+                    type={showNewPassword ? "text" : "password"}
+                    name="newPassword"
+                    value={formData.newPassword}
+                    onChange={handleChange}
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    aria-label={
+                      showNewPassword ? "Hide password" : "Show password"
+                    }
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                  >
+                    {showNewPassword ? "🙈" : "👁️"}
+                  </button>
+                  <small className="text-danger d-block">{errors.newPassword}</small>
+                </div>
 
-        <p className="text-center mt-3">
-          <Link to="/" className="fw-bold text-decoration-none text-primary">
-            Back to Login
-          </Link>
-        </p>
+                <div className="auth-input-group password-wrapper">
+                  <label className="auth-label">Confirm Password</label>
+                  <input
+                    className="auth-input"
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    aria-label={
+                      showConfirmPassword ? "Hide password" : "Show password"
+                    }
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? "🙈" : "👁️"}
+                  </button>
+                  <small className="text-danger d-block">
+                    {errors.confirmPassword}
+                  </small>
+                </div>
+              </>
+            )}
+
+            <div className="auth-actions">
+              {step > 1 && (
+                <button
+                  type="button"
+                  className="auth-button auth-button-secondary"
+                  onClick={prevStep}
+                >
+                  Back
+                </button>
+              )}
+
+              {step < 3 ? (
+                <button
+                  type="button"
+                  className="auth-button"
+                  onClick={nextStep}
+                >
+                  {step === 1 ? "Send Code" : "Verify"}
+                </button>
+              ) : (
+                <button type="submit" className="auth-button" disabled={isLoading}>
+                  {isLoading ? "Resetting..." : "Reset Password"}
+                </button>
+              )}
+            </div>
+          </form>
+
+          <div className="auth-footer mt-4">
+            Remembered your password?{" "}
+            <Link to="/" className="auth-footer-link">
+              Back to login
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TaskFlow.Migrations
 {
     /// <inheritdoc />
-    public partial class FixTaskRelation : Migration
+    public partial class InitialCreateSQLite : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,7 +19,9 @@ namespace TaskFlow.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     Message = table.Column<string>(type: "TEXT", nullable: false),
                     UserId = table.Column<int>(type: "INTEGER", nullable: false),
-                    IsRead = table.Column<bool>(type: "INTEGER", nullable: false)
+                    IsRead = table.Column<bool>(type: "INTEGER", nullable: false),
+                    TaskId = table.Column<int>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {

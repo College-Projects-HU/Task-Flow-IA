@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
+import registerImage from "../assets/register.png";
+import "./Login.css"; // Reuse the styles
 
 function Register() {
   const [step, setStep] = useState(1);
@@ -16,17 +18,21 @@ function Register() {
     role: 2,
     jobTitle: "",
     profilePicture: null,
+    termsAccepted: false,
   });
 
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value, type, files } = e.target;
+    const { name, value, type, files, checked } = e.target;
 
     setFormData({
       ...formData,
-      [name]: type === "file" ? files[0] : value,
+      [name]:
+        type === "file" ? files[0] : type === "checkbox" ? checked : value,
     });
   };
 
@@ -61,6 +67,7 @@ function Register() {
 
     if (step === 3) {
       if (!formData.jobTitle) newErrors.jobTitle = "Required";
+      if (!formData.termsAccepted) newErrors.termsAccepted = "You must accept the Terms & Conditions";
     }
 
     setErrors(newErrors);
@@ -106,225 +113,262 @@ function Register() {
   const progress = (step / 3) * 100;
 
   return (
-    <div
-      className="d-flex justify-content-center align-items-center vh-100"
-      style={{
-        background: "linear-gradient(135deg, #8c8ca5, #0749ac)",
-      }}
-    >
-      <div
-        className="card p-4 shadow"
-        style={{
-          width: "440px",
-          borderRadius: "15px",
-          background: "rgba(137, 137, 155, 0.55)",
-          color: "white",
-        }}
-      >
-        {/* Progress */}
-        <div className="progress mb-2" style={{ height: "6px" }}>
-          <div
-            className="progress-bar"
-            style={{
-              width: `${progress}%`,
-              background: "linear-gradient(90deg, #3787ff, #001a8d)",
-            }}
-          ></div>
+    <div className="auth-container">
+      {/* Brand Logo Corner */}
+      <div className="auth-header">
+        <div className="auth-logo-icon"></div>
+        <span className="auth-brand-name">Flowbit</span>
+      </div>
+
+      <div className="auth-content row m-0 flex-row-reverse">
+        {/* Right Side: Image */}
+        <div className="col-lg-6 auth-image-col">
+          <img src={registerImage} alt="Register Access" className="auth-image" />
         </div>
 
-        {/* Steps */}
-        <div className="d-flex justify-content-between mb-3">
-          {[1, 2, 3].map((num) => (
+        {/* Left Side: Form */}
+        <div className="col-lg-6 auth-form-col">
+          <h3 className="auth-title">Create Account</h3>
+          <p className="auth-subtitle">Join us and streamline your workflow today!</p>
+
+           {/* Progress */}
+           <div className="progress mb-4" style={{ height: "4px", backgroundColor: "#e5e7eb" }}>
             <div
-              key={num}
-              className="d-flex align-items-center justify-content-center"
+              className="progress-bar"
               style={{
-                width: "28px",
-                height: "28px",
-                borderRadius: "50%",
-                background:
-                  step >= num ? "#033092" : "rgba(255,255,255,0.2)",
-                fontSize: "12px",
-                fontWeight: "bold",
+                width: `${progress}%`,
+                backgroundColor: "#111827",
+                transition: "width 0.3s ease"
               }}
-            >
-              {num}
-            </div>
-          ))}
-        </div>
+            ></div>
+          </div>
 
-        <h3 className="text-center">Create Account</h3>
-        <p className="text-center opacity-75">Step {step}/3</p>
+          <form onSubmit={handleSubmit}>
+            {/* STEP 1 */}
+            {step === 1 && (
+              <>
+                <div className="row">
+                   <div className="col-lg-6 auth-input-group">
+                    <label className="auth-label">First Name</label>
+                    <input
+                      className="auth-input"
+                      value={formData.firstName}
+                      name="firstName"
+                      placeholder=""
+                      onChange={handleChange}
+                    />
+                    <small className="text-danger">{errors.firstName}</small>
+                  </div>
 
-        <form onSubmit={handleSubmit}>
-          {/* STEP 1 */}
-          {step === 1 && (
-            <>
-              <input
-                className="form-control mb-3"
-                value={formData.firstName}
-                name="firstName"
-                placeholder="First Name"
-                onChange={handleChange}
-              />
-              <small className="text-danger">{errors.firstName}</small>
-
-              <input
-                className="form-control mb-3"
-                value={formData.lastName}
-                name="lastName"
-                placeholder="Last Name"
-                onChange={handleChange}
-              />
-              <small className="text-danger">{errors.lastName}</small>
-
-              <input
-                className="form-control mb-3"
-                value={formData.email}
-                name="email"
-                placeholder="Email"
-                onChange={handleChange}
-              />
-              <small className="text-danger">{errors.email}</small>
-
-              <input
-                className="form-control mb-3"
-                value={formData.phone}
-                name="phone"
-                placeholder="Phone"
-                onChange={handleChange}
-              />
-              <small className="text-danger">{errors.phone}</small>
-            </>
-          )}
-
-          {/* STEP 2 */}
-          {step === 2 && (
-            <>
-              <input
-                className="form-control mb-3"
-                value={formData.password}
-                type="password"
-                name="password"
-                placeholder="Password"
-                onChange={handleChange}
-              />
-              <small className="text-danger">{errors.password}</small>
-
-              <input
-                className="form-control mb-3"
-                value={formData.confirmPassword}
-                type="password"
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                onChange={handleChange}
-              />
-              <small className="text-danger">
-                {errors.confirmPassword}
-              </small>
-            </>
-          )}
-
-          {/* STEP 3 */}
-          {step === 3 && (
-            <>
-              <input
-                className="form-control mb-3"
-                value={formData.jobTitle}
-                name="jobTitle"
-                placeholder="Job Title"
-                onChange={handleChange}
-              />
-              <small className="text-danger">{errors.jobTitle}</small>
-
-              {/* Role */}
-              <div className="mb-3">
-                <span className="fw-bold me-2">Join as:</span>
-
-                <div className="form-check form-check-inline">
-                  <input
-                    className="form-check-input"
-                    type="radio"
-                    name="role"
-                    value={2}
-                    checked={parseInt(formData.role, 10) === 2}
-                    onChange={handleChange}
-                  />
-                  <label className="form-check-label">Member</label>
+                  <div className="col-lg-6 auth-input-group">
+                    <label className="auth-label">Last Name</label>
+                    <input
+                      className="auth-input"
+                      value={formData.lastName}
+                      name="lastName"
+                      placeholder=""
+                      onChange={handleChange}
+                    />
+                    <small className="text-danger">{errors.lastName}</small>
+                  </div>
                 </div>
 
-                <div className="form-check form-check-inline">
+                <div className="auth-input-group">
+                  <label className="auth-label">Email</label>
                   <input
-                    className="form-check-input"
-                    type="radio"
-                    name="role"
-                    value={1}
-                    checked={parseInt(formData.role, 10) === 1}
+                    className="auth-input"
+                    value={formData.email}
+                    name="email"
+                    type="email"
+                    placeholder=""
                     onChange={handleChange}
                   />
-                  <label className="form-check-label">
-                    Project Manager
+                  <small className="text-danger">{errors.email}</small>
+                </div>
+
+                <div className="auth-input-group">
+                  <label className="auth-label">Phone</label>
+                  <input
+                    className="auth-input"
+                    value={formData.phone}
+                    name="phone"
+                    placeholder=""
+                    onChange={handleChange}
+                  />
+                  <small className="text-danger">{errors.phone}</small>
+                </div>
+              </>
+            )}
+
+            {/* STEP 2 */}
+            {step === 2 && (
+              <>
+                 <div className="auth-input-group password-wrapper">
+                  <label className="auth-label">Password</label>
+                  <input
+                    className="auth-input"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    name="password"
+                    placeholder=""
+                    onChange={handleChange}
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? "🙈" : "👁️"}
+                  </button>
+                  <small className="text-danger d-block">{errors.password}</small>
+                </div>
+
+                <div className="auth-input-group password-wrapper">
+                  <label className="auth-label">Confirm Password</label>
+                  <input
+                    className="auth-input"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={formData.confirmPassword}
+                    name="confirmPassword"
+                    placeholder=""
+                    onChange={handleChange}
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? "🙈" : "👁️"}
+                  </button>
+                  <small className="text-danger d-block">{errors.confirmPassword}</small>
+                </div>
+              </>
+            )}
+
+            {/* STEP 3 */}
+            {step === 3 && (
+              <>
+                <div className="auth-input-group">
+                  <label className="auth-label">Job Title</label>
+                  <input
+                    className="auth-input"
+                    value={formData.jobTitle}
+                    name="jobTitle"
+                    placeholder=""
+                    onChange={handleChange}
+                  />
+                  <small className="text-danger">{errors.jobTitle}</small>
+                </div>
+
+                {/* Role */}
+                <div className="auth-input-group">
+                  <label className="auth-label mb-2">Join as</label>
+                  <div className="d-flex gap-3">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="role"
+                        value={2}
+                        id="roleMember"
+                        checked={parseInt(formData.role, 10) === 2}
+                        onChange={handleChange}
+                      />
+                      <label className="form-check-label" htmlFor="roleMember">Member</label>
+                    </div>
+
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="role"
+                        value={1}
+                        id="rolePM"
+                        checked={parseInt(formData.role, 10) === 1}
+                        onChange={handleChange}
+                      />
+                      <label className="form-check-label" htmlFor="rolePM">
+                        Project Manager
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="auth-input-group">
+                  <label className="auth-label">Profile Picture</label>
+                  <input
+                    className="form-control mb-2"
+                    type="file"
+                    name="profilePicture"
+                    onChange={handleChange}
+                    style={{ fontSize: "0.9rem" }}
+                  />
+                </div>
+                
+                <div className="auth-options mt-4 mb-2">
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="termsAccepted"
+                      checked={formData.termsAccepted}
+                      onChange={handleChange}
+                      className="auth-checkbox"
+                    />
+                    I agree to the <Link to="#" className="auth-link">Terms & Conditions</Link>
                   </label>
                 </div>
-              </div>
+                <small className="text-danger d-block mb-3">{errors.termsAccepted}</small>
 
-              <input
-                className="form-control mb-2"
-                type="file"
-                name="profilePicture"
-                onChange={handleChange}
-              />
-
-              <div className="small text-light">
-                {parseInt(formData.role, 10) === 1
-                  ? "Admin will need to review and approve your account."
-                  : "You can log in immediately after registering."}
-              </div>
-            </>
-          )}
-
-          {/* BUTTONS */}
-          <div className="d-flex gap-2 mt-3">
-            {step > 1 && (
-              <button
-                type="button"
-                className="btn btn-secondary w-100"
-                onClick={prevStep}
-              >
-                Back
-              </button>
+                <div className="small text-muted mb-3">
+                  {parseInt(formData.role, 10) === 1
+                    ? "Admin will need to review and approve your account."
+                    : "You can log in immediately after registering."}
+                </div>
+              </>
             )}
 
-            {step < 3 ? (
-              <button
-                type="button"
-                className="btn w-100 text-white"
-                style={{
-                  background:
-                    "linear-gradient(90deg, #0f6bb6, #0349a5)",
-                }}
-                onClick={nextStep}
-              >
-                Next
-              </button>
-            ) : (
-              <button
-                type="submit"
-                className="btn btn-primary w-100"
-                disabled={isLoading}
-              >
-                {isLoading ? "Loading..." : "Register"}
-              </button>
-            )}
+            {/* BUTTONS */}
+            <div className="d-flex gap-3 mt-4">
+              {step > 1 && (
+                <button
+                  type="button"
+                  className="auth-button"
+                  style={{ backgroundColor: "#e5e7eb", color: "#374151" }}
+                  onClick={prevStep}
+                >
+                  Back
+                </button>
+              )}
+
+              {step < 3 ? (
+                <button
+                  type="button"
+                  className="auth-button"
+                  onClick={nextStep}
+                >
+                  Continue
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  className="auth-button"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Loading..." : "Create account"}
+                </button>
+              )}
+            </div>
+          </form>
+
+          <div className="auth-footer mt-4">
+            Already have an account?{" "}
+            <Link to="/" className="auth-footer-link">
+              Log in
+            </Link>
           </div>
-        </form>
-
-        <p className="text-center mt-3">
-          Already have account?{" "}
-          <Link to="/" className="fw-bold text-decoration-none text-primary">
-            Login
-          </Link>
-        </p>
+        </div>
       </div>
     </div>
   );

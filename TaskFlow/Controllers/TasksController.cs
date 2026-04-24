@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using TaskFlow.Data;
 using TaskFlow.DTOs;
 using TaskFlow.Models;
+using TaskFlow.Interfaces;
 
 namespace TaskFlow.Controllers
 {
@@ -13,10 +14,12 @@ namespace TaskFlow.Controllers
     public class TasksController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly INotificationService _notificationService;
 
-        public TasksController(ApplicationDbContext context)
+        public TasksController(ApplicationDbContext context, INotificationService notificationService) // 3. الحقن في الـ Constructor
         {
             _context = context;
+            _notificationService = notificationService;
         }
 
         [HttpGet("projects/{projectId:int}/tasks")]
@@ -300,6 +303,13 @@ namespace TaskFlow.Controllers
             task.AssignedMemberId = dto.UserId;
 
             await _context.SaveChangesAsync();
+
+            // 4. إرسال الإشعار هنا
+            await _notificationService.SendTaskNotification(
+                dto.UserId.ToString(),
+                $"You have been assigned a new task: {task.Title}",
+                task.Id
+            );
 
             return Ok(new { message = "Task assigned successfully." });
         }

@@ -1,11 +1,13 @@
-import { useState, useEffect } from "react";
+import { useContext, useState, useEffect } from "react";
 import { getProjects, createProject } from "../services/api";
 import ProjectCard from "../components/ProjectCard";
 import CreateProjectModal from "../components/CreateProjectModal";
-import { getRoleFromToken } from "../utils/decodeToken";
+import { AuthContext } from "../context/AuthContext";
+import DashboardLayout from "../components/DashboardLayout";
 import "./ProjectsPage.css";
 
 const ProjectsPage = () => {
+  const { user } = useContext(AuthContext);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -46,53 +48,49 @@ const ProjectsPage = () => {
   };
 
   // 🔐 role
-  const role = getRoleFromToken();
+  const role = user?.role;
 
   // 🔄 loading
-  if (loading) {
-    return (
-      <div className="projects-page text-center text-white">
-        <h4>Loading...</h4>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="dashboard-loading">
+  //       <h4>Loading projects...</h4>
+  //     </div>
+  //   );
+  // }
 
   return (
-    <div className="projects-page">
-      {/* 🔥 Header */}
-      <div className="projects-header">
-        <h2 className="projects-title">Projects</h2>
+    <DashboardLayout title="Projects" activeItem="projects">
+      <div className="projects-page">
+        <div className="projects-header">
+          <h3 className="projects-title">Projects Workspace</h3>
 
-        {role === "ProjectManager" && (
-          <button
-            className="create-btn"
-            onClick={() => setShowModal(true)}
-          >
-            + Create Project
-          </button>
+          {role === "ProjectManager" && (
+            <button className="create-btn" onClick={() => setShowModal(true)}>
+              + Create Project
+            </button>
+          )}
+        </div>
+
+        {projects.length === 0 ? (
+          <div className="empty-state">
+            <h4>No projects yet</h4>
+          </div>
+        ) : (
+          <div className="row">
+            {projects.map((p) => (
+              <ProjectCard key={p.id} project={p} />
+            ))}
+          </div>
         )}
+
+        <CreateProjectModal
+          show={showModal}
+          handleClose={() => setShowModal(false)}
+          onCreate={handleCreate}
+        />
       </div>
-
-      {/* 📭 Empty */}
-      {projects.length === 0 ? (
-        <div className="empty-state">
-          <h4>No projects yet 😢</h4>
-        </div>
-      ) : (
-        <div className="row">
-          {projects.map((p) => (
-            <ProjectCard key={p.id} project={p} />
-          ))}
-        </div>
-      )}
-
-      {/* 🔥 Modal */}
-      <CreateProjectModal
-        show={showModal}
-        handleClose={() => setShowModal(false)}
-        onCreate={handleCreate}
-      />
-    </div>
+    </DashboardLayout>
   );
 };
 

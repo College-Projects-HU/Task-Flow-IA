@@ -1,4 +1,6 @@
-﻿namespace TaskFlow.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace TaskFlow.Models
 {
     public class TaskItem
     {
@@ -7,8 +9,12 @@
         public string Title { get; set; }
         public string Description { get; set; }
 
+        // 1. Foreign Key Property
         public int? AssignedMemberId { get; set; } // مهم
-        public User AssignedMember { get; set; } 
+
+        // 2. Navigation Property
+        [ForeignKey("AssignedMemberId")]
+        public User? AssignedMember { get; set; }
         public int ProjectId { get; set; }
         public Project Project { get; set; }
 

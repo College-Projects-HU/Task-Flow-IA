@@ -74,8 +74,8 @@
   color: #ccc;
 }
 
-/* BUTTON المشترك */
-button {
+/* BUTTON المشترك (scoped to legacy card layout) */
+.card button {
   width: 100%;
   padding: 12px;
   border: none;
@@ -89,8 +89,7 @@ button {
   transition: 0.3s;
 }
 
-button:hover {
+.card button:hover {
   transform: scale(1.07);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
 }
-
