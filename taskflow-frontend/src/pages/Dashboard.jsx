@@ -122,13 +122,13 @@ export default function Dashboard() {
   const progressPct = statusTotal ? (statusData.InProgress / statusTotal) * 100 : 0;
   const donePct = statusTotal ? (statusData.Done / statusTotal) * 100 : 0;
 
-  if (loading) {
-    return (
-      <div className="dashboard-loading">
-        <h4>Loading dashboard...</h4>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="dashboard-loading">
+  //       <h4>Loading dashboard...</h4>
+  //     </div>
+  //   );
+  // }
 
   return (
     <DashboardLayout

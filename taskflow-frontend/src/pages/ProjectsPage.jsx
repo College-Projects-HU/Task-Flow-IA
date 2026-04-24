@@ -51,13 +51,13 @@ const ProjectsPage = () => {
   const role = user?.role;
 
   // 🔄 loading
-  if (loading) {
-    return (
-      <div className="dashboard-loading">
-        <h4>Loading projects...</h4>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="dashboard-loading">
+  //       <h4>Loading projects...</h4>
+  //     </div>
+  //   );
+  // }
 
   return (
     <DashboardLayout title="Projects" activeItem="projects">
