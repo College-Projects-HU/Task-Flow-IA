@@ -1,126 +1,315 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
-import api, { getProjectTasks } from '../services/api';
+import { AuthContext } from '../context/AuthContext';
+import DashboardLayout from '../components/DashboardLayout';
+import CreateTaskModal from '../components/CreateTaskModal';
+import EditTaskModal from '../components/EditTaskModal';
+import api, { getProjectTasks, getProjectById } from '../services/api';
+import './TaskBoard.css';
 
 const TaskBoard = () => {
-    const { projectId } = useParams();
-    const [tasks, setTasks] = useState([]);
-    const [loading, setLoading] = useState(true);
+  const { projectId } = useParams();
+  const { user } = useContext(AuthContext);
+  
+  const [project, setProject] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [filteredTasks, setFilteredTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
 
-    const fetchTasks = async () => {
-        try {
-            setLoading(true);
-            const data = await getProjectTasks(projectId);
-            setTasks(Array.isArray(data) ? data : []);
-            setLoading(false);
-        } catch (error) {
-            console.error("Error fetching tasks:", error);
-            setTasks([]);
-            setLoading(false);
-        }
+  // Fetch tasks based on user role
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [projectData, allTasks] = await Promise.all([
+        getProjectById(projectId),
+        getProjectTasks(projectId),
+      ]);
+
+      setProject(projectData);
+
+      // Role-based filtering
+      let visibleTasks = allTasks;
+
+      if (user?.role === 'Member') {
+        // Members can only see tasks assigned to them
+        visibleTasks = allTasks.filter(
+          t => t.assignedUserId === user.id || t.assignedMemberId === user.id
+        );
+      } else if (user?.role === 'ProjectManager') {
+        // ProjectManagers see all tasks in their projects
+        visibleTasks = allTasks;
+      } else if (user?.role === 'Admin') {
+        // Admins see all tasks
+        visibleTasks = allTasks;
+      }
+
+      setTasks(visibleTasks);
+      applyFilters(visibleTasks, searchQuery);
+    } catch (err) {
+      console.error('Error fetching tasks:', err);
+      setError('Failed to load tasks. Please try again.');
+      setTasks([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const applyFilters = (taskList, query) => {
+    let filtered = taskList;
+
+    if (query.trim()) {
+      filtered = filtered.filter(t =>
+        t.title.toLowerCase().includes(query.toLowerCase()) ||
+        t.description?.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+
+    setFilteredTasks(filtered);
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, [projectId, user?.id]);
+
+  useEffect(() => {
+    applyFilters(tasks, searchQuery);
+  }, [searchQuery, tasks]);
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleTaskCreated = () => {
+    fetchTasks();
+  };
+
+  const handleTaskUpdated = () => {
+    fetchTasks();
+  };
+
+  const handleEditClick = (task) => {
+    setSelectedTask(task);
+    setShowEditModal(true);
+  };
+
+  const canCreateTask = user?.role === 'ProjectManager' || user?.role === 'Admin';
+
+  const normalizeTask = (task) => ({
+    id: task?.id ?? task?.Id,
+    title: task?.title ?? task?.Title ?? 'Untitled',
+    description: task?.description ?? task?.Description ?? '',
+    priority: task?.priority ?? task?.Priority ?? 'Medium',
+    status: task?.status ?? task?.Status ?? 'ToDo',
+    dueDate: task?.dueDate ?? task?.DueDate ?? null,
+    assignedUserId: task?.assignedUserId ?? task?.AssignedUserId ?? null,
+    assignedMemberId: task?.assignedMemberId ?? task?.AssignedMemberId ?? null,
+    assignedUserName: task?.assignedUserName ?? task?.AssignedUserName ?? '',
+    commentsCount: task?.comments?.length ?? 0,
+    attachmentsCount: task?.attachments?.length ?? 0,
+  });
+
+  const normalizedTasks = filteredTasks.map(normalizeTask);
+
+  const toDoTasks = normalizedTasks.filter(t => t.status === 'ToDo');
+  const inProgressTasks = normalizedTasks.filter(t => t.status === 'InProgress');
+  const doneTasks = normalizedTasks.filter(t => t.status === 'Done');
+
+  const TaskCard = ({ task }) => {
+    const daysRemaining = task.dueDate
+      ? Math.ceil((new Date(task.dueDate) - new Date()) / (1000 * 60 * 60 * 24))
+      : null;
+
+    const getInitials = (name) => {
+      if (!name) return '?';
+      return name
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2);
     };
-
-    useEffect(() => {
-        fetchTasks();
-    }, [projectId]);
-
-    const moveTask = async (taskId, newStatus) => {
-        // 1. خريطة التحويل (Mapping) من النص للرقم
-        // اتأكدي إن الأرقام دي هي نفس ترتيب الـ Enum في ملف TaskStatus.cs
-        const statusMap = {
-            "ToDo": 0,
-            "InProgress": 1,
-            "Done": 2
-        };
-
-        try {
-            // 2. حولنا الحالة لرقم قبل ما نبعتها
-            const numericStatus = statusMap[newStatus];
-
-            // 3. بنبعت الرقم بدل النص
-            await api.patch(`/tasks/${taskId}/status`, { status: numericStatus });
-
-            fetchTasks(); // تحديث البورد بعد النجاح
-        } catch (error) {
-            console.error("خطأ أثناء التحديث:", error.response?.data);
-            alert("Failed to update task status");
-        }
-    };
-
-    const getPriorityBadge = (priority) => {
-        switch (priority) {
-            case 'Low': return 'bg-success';    // Green
-            case 'Medium': return 'bg-warning text-dark'; // Amber (Yellow) - text-dark للأوضح
-            case 'High': return 'bg-danger';    // Red
-            default: return 'bg-secondary';
-        }
-    };
-
-    const todoTasks = tasks.filter(t => t.status === 'ToDo');
-    const inProgressTasks = tasks.filter(t => t.status === 'InProgress');
-    const doneTasks = tasks.filter(t => t.status === 'Done');
-
-    const renderColumn = (title, taskList, nextStatus) => (
-        <div className="col-md-4">
-            <h4 className="text-center bg-light p-2 rounded">{title}</h4>
-            <div className="border p-2" style={{ minHeight: '500px' }}>
-                {taskList.map(task => (
-                    <div key={task.id} className="card mb-3 shadow-sm">
-                        <div className="card-body">
-                            {/* 1. Title */}
-                            <h6 className="card-title text-primary text-center">{task.title}</h6>
-
-                            {/* 2. Priority Badge */}
-                            <div className="text-center mb-2">
-                                <span className={`badge ${getPriorityBadge(task.priority)}`}>
-                                    {task.priority}
-                                    {/* لو حابب تضيف آيكونا للبريتي */}
-                                    {task.priority === 'High' && <span className='ms-1'>⚠️</span>}
-                                </span>
-                            </div>
-
-                            {/* التعديل هنا: إضافة البيانات الناقصة المطلوبة */}
-                            {/* 3. Assigned member name */}
-                            <p className="card-text small mb-1">
-                                <span className='fw-bold text-muted'>Assigned To: </span>
-                                {task.assignedUserName || 'Unassigned'} {/* لو مفيش اسم، نقول 'غير موكل' */}
-                            </p>
-
-                            {/* 4. Due date */}
-                            <p className="card-text small mb-3">
-                                <span className='fw-bold text-muted'>Due Date: </span>
-                                {/* لو التاريخ موجود، نعرضه بتنسيق حلو */}
-                                {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No date'}
-                            </p>
-
-                            {/* 5. Add "Move" button with next status */}
-                            {nextStatus && (
-                                <button
-                                    className="btn btn-outline-primary btn-sm w-100"
-                                    onClick={() => moveTask(task.id, nextStatus)}
-                                >
-                                    Move to {nextStatus}
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-
-    if (loading) return <div className="text-center mt-5"><h4>Loading Board...</h4></div>;
 
     return (
-        <div className="container-fluid mt-4">
-            <h2 className="mb-4 text-center">Project {projectId} Task Board</h2>
-            <div className="row">
-                {renderColumn("To Do", todoTasks, "InProgress")}
-                {renderColumn("In Progress", inProgressTasks, "Done")}
-                {renderColumn("Done", doneTasks, null)} {/* آخر عمود مفيش فيه Move */}
-            </div>
+      <div className="taskboard-card" onClick={() => handleEditClick(task)}>
+        <div className="taskboard-card-header">
+          <h5 className="taskboard-card-title">{task.title}</h5>
+          <span className={`taskboard-card-priority ${task.priority?.toLowerCase() || 'medium'}`}>
+            {task.priority}
+          </span>
         </div>
+
+        {task.description && (
+          <p className="taskboard-card-description">{task.description}</p>
+        )}
+
+        {(daysRemaining !== null || task.assignedUserName) && (
+          <div className="taskboard-card-meta">
+            {daysRemaining !== null && (
+              <div className="taskboard-card-meta-item">
+                <span className="taskboard-card-meta-icon">📅</span>
+                <span>{daysRemaining} days</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="taskboard-card-footer">
+          <div className="taskboard-card-engagement">
+            <div className="taskboard-card-engagement-item">
+              <span>📎</span>
+              <span>{task.attachmentsCount}</span>
+            </div>
+            <div className="taskboard-card-engagement-item">
+              <span>💬</span>
+              <span>{task.commentsCount}</span>
+            </div>
+          </div>
+
+          {task.assignedUserName && (
+            <div className="taskboard-card-avatars">
+              <div
+                className="taskboard-card-avatar"
+                title={task.assignedUserName}
+              >
+                {getInitials(task.assignedUserName)}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     );
+  };
+
+  const TaskColumn = ({ title, tasks: columnTasks, status }) => (
+    <div className="taskboard-column">
+      <div className="taskboard-column-header">
+        <div className="taskboard-column-title">
+          <h4>{title}</h4>
+          <span className="taskboard-column-badge">{columnTasks.length}</span>
+        </div>
+        <div className="taskboard-column-actions">
+          <button className="taskboard-column-btn" title="Options">
+            ⋯
+          </button>
+        </div>
+      </div>
+
+      <div className="taskboard-column-body">
+        {canCreateTask && columnTasks.length === 0 && (
+          <div
+            className="taskboard-add-card"
+            onClick={() => {
+              setSelectedTask(null);
+              setShowCreateModal(true);
+            }}
+          >
+            +
+          </div>
+        )}
+
+        {columnTasks.map(task => (
+          <TaskCard key={task.id} task={task} />
+        ))}
+
+        {columnTasks.length === 0 && !canCreateTask && (
+          <div className="taskboard-empty">
+            <div className="taskboard-empty-icon">📭</div>
+            <p>No tasks here</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  if (loading) {
+    return (
+      <DashboardLayout title="Tasks Board" activeItem="tasks">
+        <div className="taskboard-loading">
+          <div className="taskboard-spinner"></div>
+          <span>Loading tasks...</span>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  return (
+    <DashboardLayout title="Tasks Board" activeItem="tasks">
+      <div className="taskboard-container">
+        {error && (
+          <div className="taskboard-error">
+            <span className="taskboard-error-icon">⚠️</span>
+            <span>{error}</span>
+          </div>
+        )}
+
+        <div className="taskboard-header">
+          <div>
+            <h3>{project?.name || 'Task Board'}</h3>
+          </div>
+          <div className="taskboard-header-actions">
+            <div className="taskboard-search">
+              <input
+                type="text"
+                placeholder="Search tasks..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
+            </div>
+
+            {canCreateTask && (
+              <button
+                className="btn btn-primary"
+                style={{
+                  padding: '0.625rem 1rem',
+                  background: '#4a90e2',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#fff',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: '0.2s',
+                }}
+                onClick={() => {
+                  setSelectedTask(null);
+                  setShowCreateModal(true);
+                }}
+              >
+                + Add Task
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="taskboard-content">
+          <TaskColumn title="Backlog" tasks={toDoTasks} status="ToDo" />
+          <TaskColumn title="In Progress" tasks={inProgressTasks} status="InProgress" />
+          <TaskColumn title="Completed" tasks={doneTasks} status="Done" />
+        </div>
+      </div>
+
+      <CreateTaskModal
+        show={showCreateModal}
+        handleClose={() => setShowCreateModal(false)}
+        projectId={projectId}
+        onTaskCreated={handleTaskCreated}
+      />
+
+      <EditTaskModal
+        show={showEditModal}
+        handleClose={() => setShowEditModal(false)}
+        projectId={projectId}
+        task={selectedTask}
+        onTaskUpdated={handleTaskUpdated}
+      />
+    </DashboardLayout>
+  );
 };
 
 export default TaskBoard;
