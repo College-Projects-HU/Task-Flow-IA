@@ -20,3 +20,6 @@ appsettings.Development.json
 *.db-shm
 *.db-wal
 taskflow.db
+
+
+.codex

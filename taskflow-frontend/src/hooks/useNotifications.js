@@ -1,40 +1,125 @@
-import { useEffect, useState } from 'react';
-import * as signalR from '@microsoft/signalr';
+import { useEffect, useState } from "react";
+import * as signalR from "@microsoft/signalr";
+import { API_ORIGIN } from "../services/api";
+import { getNotifications, markNotificationAsRead } from "../services/api";
 
 const useNotifications = (token) => {
-    const [notifications, setNotifications] = useState([]);
-    const [connection, setConnection] = useState(null);
+  const [notifications, setNotifications] = useState([]);
 
-    useEffect(() => {
-        if (!token) return;
+  useEffect(() => {
+    if (!token) {
+      setNotifications([]);
+      return undefined;
+    }
 
-        // 1. إنشاء الاتصال مع تمرير الـ JWT
-        const newConnection = new signalR.HubConnectionBuilder()
-            .withUrl("https://localhost:5001/hubs/notifications", {
-                accessTokenFactory: () => token // تمرير الـ JWT هنا
-            })
-            .withAutomaticReconnect()
-            .build();
+    let isMounted = true;
+    let fallbackIntervalId = null;
 
-        // 2. الاستماع لحدث 'NewNotification'
-        newConnection.on("NewNotification", (notification) => {
-            setNotifications((prev) => [notification, ...prev]);
+    const loadNotifications = async (preserveReadState = false) => {
+      try {
+        const data = await getNotifications();
+        if (isMounted) {
+          setNotifications((current) => {
+            const next = Array.isArray(data) ? data : [];
+
+            if (!preserveReadState) {
+              return next;
+            }
+
+            return next.map((notification) => {
+              const notificationId = notification?.id ?? notification?.Id;
+              const existing = current.find((item) => {
+                const currentId = item?.id ?? item?.Id;
+                return currentId === notificationId;
+              });
+
+              if (!existing) {
+                return notification;
+              }
+
+              const wasRead = existing?.isRead ?? existing?.IsRead ?? false;
+              return wasRead
+                ? { ...notification, isRead: true, IsRead: true }
+                : notification;
+            });
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load notifications", error);
+      }
+    };
+
+    loadNotifications();
+
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl(`${API_ORIGIN}/hubs/notifications`, {
+        accessTokenFactory: () => token,
+      })
+      .withAutomaticReconnect()
+      .build();
+
+    connection.on("NewNotification", (notification) => {
+      if (!isMounted) {
+        return;
+      }
+
+      setNotifications((current) => {
+        const notificationId = notification?.id ?? notification?.Id;
+        const alreadyExists = current.some((item) => {
+          const currentId = item?.id ?? item?.Id;
+          return currentId === notificationId;
         });
 
-        // 3. تشغيل الاتصال
-        newConnection.start()
-            .then(() => console.log("SignalR Connected!"))
-            .catch((err) => console.error("Connection failed: ", err));
+        return alreadyExists ? current : [notification, ...current];
+      });
+    });
 
-        setConnection(newConnection);
+    connection.onreconnected(() => {
+      loadNotifications(true);
+      if (fallbackIntervalId) {
+        window.clearInterval(fallbackIntervalId);
+        fallbackIntervalId = null;
+      }
+    });
 
-        // 4. Cleanup (عند الـ unmount) - فصل الاتصال
-        return () => {
-            newConnection.stop();
-        };
-    }, [token]);
+    connection.onclose(() => {
+      if (!fallbackIntervalId) {
+        fallbackIntervalId = window.setInterval(() => {
+          loadNotifications(true);
+        }, 15000);
+      }
+    });
 
-    return { notifications, connection };
+    connection.start().catch((error) => {
+      console.error("Notification hub connection failed", error);
+      if (!fallbackIntervalId) {
+        fallbackIntervalId = window.setInterval(() => {
+          loadNotifications(true);
+        }, 15000);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      if (fallbackIntervalId) {
+        window.clearInterval(fallbackIntervalId);
+      }
+      connection.stop().catch(() => {});
+    };
+  }, [token]);
+
+  const markAsRead = async (notificationId) => {
+    await markNotificationAsRead(notificationId);
+    setNotifications((prev) =>
+      prev.map((notification) =>
+        notification.id === notificationId || notification.Id === notificationId
+          ? { ...notification, isRead: true, IsRead: true }
+          : notification,
+      ),
+    );
+  };
+
+  return { notifications, markAsRead };
 };
 
 export default useNotifications;
