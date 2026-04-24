@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { getProjectMembers, updateTask } from "../services/api";
 
+const statusOrder = ["ToDo", "InProgress", "Done"];
+
 const EditTaskModal = ({ show, handleClose, projectId, task, onTaskUpdated }) => {
   const [form, setForm] = useState({
     title: "",
@@ -14,6 +16,9 @@ const EditTaskModal = ({ show, handleClose, projectId, task, onTaskUpdated }) =>
   const [members, setMembers] = useState([]);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const currentStatus = task?.status ?? task?.Status ?? "ToDo";
+  const currentStatusIndex = statusOrder.indexOf(currentStatus);
+  const allowedStatuses = statusOrder.slice(currentStatusIndex >= 0 ? currentStatusIndex : 0);
 
   const resetForm = () => {
     setForm({
@@ -180,9 +185,11 @@ const EditTaskModal = ({ show, handleClose, projectId, task, onTaskUpdated }) =>
                     value={form.status}
                     onChange={handleChange}
                   >
-                    <option value="ToDo">ToDo</option>
-                    <option value="InProgress">In Progress</option>
-                    <option value="Done">Done</option>
+                    {allowedStatuses.map((status) => (
+                      <option key={status} value={status}>
+                        {status === "InProgress" ? "In Progress" : status}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

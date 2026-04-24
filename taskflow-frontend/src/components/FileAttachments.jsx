@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { uploadAttachment, getAttachments } from "../services/api";
+import { API_ORIGIN, uploadAttachment, getAttachments } from "../services/api";
 
 const FileAttachments = ({ taskId }) => {
   const [files, setFiles] = useState([]);
@@ -41,56 +41,56 @@ const FileAttachments = ({ taskId }) => {
     }
   };
 
-  return (
-    <div className="mt-3">
-      <h6>📎 Attachments</h6>
+  const getFileName = (filePath) => {
+    if (!filePath) {
+      return "Attachment";
+    }
 
-      {/* Upload Section */}
-      <div className="d-flex gap-2 mb-2">
+    return filePath.split("/").pop();
+  };
+
+  return (
+    <div className="taskdetail-section">
+      <div className="taskdetail-section-header">
+        <h3>Attachments</h3>
+      </div>
+
+      <div className="taskdetail-upload-row">
         <input
           type="file"
-          className="form-control form-control-sm"
+          className="taskdetail-file-input"
           onChange={(e) => setSelectedFile(e.target.files[0])}
         />
 
         <button
-          className="btn btn-sm btn-light"
+          type="button"
+          className="taskdetail-upload-btn"
           onClick={handleUpload}
         >
           Upload
         </button>
       </div>
 
-      {/* Progress */}
       {progress > 0 && (
-        <small className="text-info">
-          Uploading: {progress}%
-        </small>
+        <small className="taskdetail-upload-progress">Uploading: {progress}%</small>
       )}
 
-      {/* Files List */}
-      <ul className="list-group mt-2">
+      <ul className="taskdetail-file-list">
         {files.length === 0 && (
-          <li className="list-group-item bg-dark text-white border-secondary">
+          <li className="taskdetail-file-empty">
             No attachments yet
           </li>
         )}
 
         {files.map((file) => (
-          <li
-            key={file.id}
-            className="list-group-item bg-dark text-white border-secondary d-flex justify-content-between align-items-center"
-          >
-            <span>
-              {file.fileName} (
-              {(file.fileSize / 1024).toFixed(1)} KB)
-            </span>
+          <li key={file.id} className="taskdetail-file-item">
+            <span className="taskdetail-file-name">{getFileName(file.filePath)}</span>
 
             <a
-              href={`http://localhost:5218/${file.filePath}`}
+              href={`${API_ORIGIN}/${file.filePath}`}
               target="_blank"
               rel="noreferrer"
-              className="btn btn-sm btn-outline-light"
+              className="taskdetail-file-link"
             >
               Download
             </a>

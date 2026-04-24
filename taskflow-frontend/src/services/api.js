@@ -80,6 +80,11 @@ export const getAllTasks = async () => {
   return res.data;
 };
 
+export const getTaskById = async (taskId) => {
+  const res = await api.get(`/tasks/${taskId}`);
+  return res.data;
+};
+
 // 🔹 GET project members
 export const getProjectMembers = async (projectId) => {
   const res = await api.get(`/projects/${projectId}/members`);
@@ -95,6 +100,11 @@ export const createTask = async (projectId, taskData) => {
 // 🔹 UPDATE task
 export const updateTask = async (taskId, taskData) => {
   const res = await api.put(`/tasks/${taskId}`, taskData);
+  return res.data;
+};
+
+export const updateTaskStatus = async (taskId, status) => {
+  const res = await api.patch(`/tasks/${taskId}/status`, { status });
   return res.data;
 };
 // 🔹 UPLOAD attachment

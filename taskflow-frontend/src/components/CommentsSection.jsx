@@ -76,42 +76,34 @@ function CommentsSection({ taskId }) {
   };
 
   return (
-    <div className="mt-4">
-      <h4>💬 Comments</h4>
+    <div className="taskdetail-section">
+      <div className="taskdetail-section-header">
+        <h3>Comments</h3>
+      </div>
 
       {loading ? (
-        <p>Loading comments...</p>
+        <p className="taskdetail-comments-empty">Loading comments...</p>
       ) : (
         <>
-          <div
-            style={{
-              maxHeight: "350px",
-              overflowY: "auto",
-              border: "1px solid #ddd",
-              padding: "10px",
-              borderRadius: "10px",
-            }}
-          >
-            {comments.length === 0 && <p>No comments yet</p>}
+          <div className="taskdetail-comments-list">
+            {comments.length === 0 && (
+              <p className="taskdetail-comments-empty">No comments yet</p>
+            )}
 
             {comments.map((c) => (
-              <div
-                key={c.id}
-                className="mb-3 p-2 rounded"
-                style={{ background: "#f8f9fa" }}
-              >
-                <div className="d-flex justify-content-between">
+              <article key={c.id} className="taskdetail-comment-card">
+                <div className="taskdetail-comment-head">
                   <div>
                     <strong>{c.authorName}</strong>{" "}
-                    <small className="text-muted">
+                    <small>
                       {new Date(c.createdAt).toLocaleString()}
                     </small>
                   </div>
 
-                  {/* ✅ DELETE BUTTON */}
                   {isOwner(c.authorName) && (
                     <button
-                      className="btn btn-sm btn-danger"
+                      type="button"
+                      className="taskdetail-comment-delete"
                       onClick={() => handleDelete(c.id)}
                     >
                       Delete
@@ -119,23 +111,23 @@ function CommentsSection({ taskId }) {
                   )}
                 </div>
 
-                <p className="mt-2 mb-0">{c.content}</p>
-              </div>
+                <p>{c.content}</p>
+              </article>
             ))}
 
             <div ref={bottomRef}></div>
           </div>
 
-          <div className="mt-3 d-flex gap-2">
+          <div className="taskdetail-comment-composer">
             <textarea
-              className="form-control"
-              rows="2"
+              className="taskdetail-comment-input"
+              rows="3"
               placeholder="Write a comment..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
             />
 
-            <button className="btn btn-success" onClick={handleAdd}>
+            <button type="button" className="taskdetail-comment-submit" onClick={handleAdd}>
               Add
             </button>
           </div>
