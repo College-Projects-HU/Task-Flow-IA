@@ -117,5 +117,9 @@ export const deleteComment = (id) =>
 export const getProjectStats = (projectId) =>
   api.get(`/projects/${projectId}/stats`);
 
+export const getTaskById = async (taskId) => {
+  const res = await api.get(`/tasks/${taskId}`);
+  return res.data;
+};
 
 export default api;
