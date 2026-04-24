@@ -21,7 +21,7 @@ namespace TaskFlow.Controllers
         [Authorize]
         public async Task<IActionResult> Upload(int id, IFormFile file)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
 
             var result = await _attachmentService.Upload(id, userId, file);
 

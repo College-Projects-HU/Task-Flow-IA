@@ -351,7 +351,7 @@ namespace TaskFlow.Controllers
             List<TaskCommentResponseDto>? comments = null,
             List<TaskAttachmentResponseDto>? attachments = null)
         {
-            string assignedUserName = string.Empty;
+            string? assignedUserName = string.Empty;
 
             if (task.AssignedMemberId.HasValue)
             {

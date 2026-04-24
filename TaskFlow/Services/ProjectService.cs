@@ -42,7 +42,7 @@ namespace TaskFlow.Services
                 query = query.Where(p => p.Tasks.Any(t => t.AssignedMemberId == userId));
             }
 
-            return query.FirstOrDefault();
+            return query.FirstOrDefault()!;
         }
 
         public Project Create(Project project)

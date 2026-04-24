@@ -40,7 +40,7 @@ namespace TaskFlow.Controllers
         [HttpPost("tasks/{id}/comments")]
         public async Task<IActionResult> AddComment(int id, CreateCommentDto dto)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
 
             var comment = await _commentService.AddComment(id, userId, dto.Content);
 
@@ -52,7 +52,7 @@ namespace TaskFlow.Controllers
         [HttpDelete("comments/{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
 
             var success = await _commentService.DeleteComment(id, userId);
 

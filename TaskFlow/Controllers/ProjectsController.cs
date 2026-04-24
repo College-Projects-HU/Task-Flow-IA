@@ -29,16 +29,16 @@ namespace TaskFlow.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+            var role = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
 
             var projects = _service.GetAll(userId, role);
 
             var result = projects.Select(p => new ProjectDto
             {
                 Id = p.Id,
-                Name = p.Name,
-                Description = p.Description,
+                Name = p.Name ?? string.Empty,
+                Description = p.Description ?? string.Empty,
                 Tasks = p.Tasks.Select(t => t.Title).ToList()
             });
 
@@ -48,8 +48,8 @@ namespace TaskFlow.Controllers
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+            var role = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
 
             var project = _service.GetById(id, userId, role);
 
@@ -59,8 +59,8 @@ namespace TaskFlow.Controllers
             var dto = new ProjectDto
             {
                 Id = project.Id,
-                Name = project.Name,
-                Description = project.Description,
+                Name = project.Name ?? string.Empty,
+                Description = project.Description ?? string.Empty,
                 Tasks = project.Tasks.Select(t => t.Title).ToList()
             };
 
@@ -71,12 +71,12 @@ namespace TaskFlow.Controllers
         [Authorize(Roles = "ProjectManager")]
         public IActionResult Create(CreateProjectDto dto)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
 
             var project = new Project
             {
                 Name = dto.Name,
-                Description = dto.Description,
+                Description = dto.Description ?? string.Empty,
                 ProjectManagerId = userId
             };
 
@@ -88,8 +88,8 @@ namespace TaskFlow.Controllers
         [Authorize(Roles = "ProjectManager")]
         public IActionResult Update(int id, CreateProjectDto dto)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+            var role = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
 
             var project = _service.GetById(id, userId, role);
 
@@ -97,7 +97,7 @@ namespace TaskFlow.Controllers
                 return NotFound();
 
             project.Name = dto.Name;
-            project.Description = dto.Description;
+            project.Description = dto.Description ?? string.Empty;
 
             _service.Update(project);
 
@@ -108,8 +108,8 @@ namespace TaskFlow.Controllers
         [Authorize(Roles = "ProjectManager")]
         public IActionResult Delete(int id)
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+            var role = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
 
             var project = _service.GetById(id, userId, role);
 
