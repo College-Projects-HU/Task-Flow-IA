@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TaskFlow.Data;
 using TaskFlow.Interfaces;
+using TaskFlow.Middlewares;
 using TaskFlow.Services;
 using TaskFlow.Hubs;
 
@@ -17,7 +18,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // 2. إعدادات الـ JWT (شغل دعاء M3)
 // تأكدي أن "Key" في appsettings.json لا يقل عن 32 حرف
-var jwtKey = builder.Configuration["Jwt:Key"];
+var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is not configured");
 var keyBytes = Encoding.ASCII.GetBytes(jwtKey);
 
 builder.Services.AddAuthentication(options =>
@@ -114,6 +115,8 @@ builder.Services.AddSingleton<IUserIdProvider, NameIdentifierUserIdProvider>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
 var app = builder.Build();
+
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 // إعدادات الـ Middleware
 if (app.Environment.IsDevelopment())

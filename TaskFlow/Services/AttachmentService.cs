@@ -53,7 +53,7 @@ namespace TaskFlow.Services
                 FilePath = $"/uploads/{taskId}/{uniqueFileName}",
                 FileSize = file.Length,
                 UploadedAt = DateTime.UtcNow,
-                Task = null // 🔥 مهم لتفادي EF tracking issues
+                Task = null! // 🔥 مهم لتفادي EF tracking issues
             };
 
             _context.Attachments.Add(attachment);

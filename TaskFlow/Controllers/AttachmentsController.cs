@@ -21,18 +21,11 @@ namespace TaskFlow.Controllers
         [Authorize]
         public async Task<IActionResult> Upload(int id, IFormFile file)
         {
-            try
-            {
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
 
-                var result = await _attachmentService.Upload(id, userId, file);
+            var result = await _attachmentService.Upload(id, userId, file);
 
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            return Ok(result);
         }
 
         [HttpGet("tasks/{id:int}/attachments")]
