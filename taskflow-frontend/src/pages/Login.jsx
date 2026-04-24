@@ -2,6 +2,8 @@ import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { AuthContext } from "../context/AuthContext";
+import loginImage from "../assets/login.png";
+import "./Login.css";
 
 function Login() {
   const navigate = useNavigate();
@@ -58,14 +60,12 @@ function Login() {
       });
 
       login(response.data.message);
-      alert("Login Success");
       navigate("/dashboard");
     } catch (err) {
       setErrors({
         ...errors,
         password:
-          err.response?.data ||
-          "Login failed. Please check your credentials.",
+          err.response?.data || "Login failed. Please check your credentials.",
       });
     } finally {
       setIsLoading(false);
@@ -73,96 +73,87 @@ function Login() {
   };
 
   return (
-    <div
-      className="d-flex justify-content-center align-items-center vh-100"
-      style={{
-        background: "linear-gradient(135deg, #8c8ca5, #0749ac)",
-      }}
-    >
-      <div
-        className="card p-4 shadow"
-        style={{
-          width: "380px",
-          borderRadius: "15px",
-          background: "rgba(132, 132, 139, 0.39)",
-          color: "white",
-        }}
-      >
-        <h3 className="text-center">Welcome Back</h3>
-        <p className="text-center opacity-75">Login to TaskFlow</p>
+    <div className="auth-container">
+      {/* Brand Logo Corner */}
+      <div className="auth-header">
+        <div className="auth-logo-icon"></div>
+        <span className="auth-brand-name">Flowbit</span>
+      </div>
 
-        <form onSubmit={handleSubmit}>
-          {/* EMAIL */}
-          <input
-            className="form-control mb-3 "
-            type="email"
-            name="email"
-            placeholder="Email"
-            onChange={handleChange}
-          />
-          <small className="text-danger">{errors.email}</small>
+      <div className="auth-content row m-0">
+        {/* Left Side: Image */}
+        <div className="col-lg-6 auth-image-col">
+          <img src={loginImage} alt="Login Access" className="auth-image" />
+        </div>
 
-          {/* PASSWORD */}
-          <div className="position-relative">
-            <input
-              className="form-control mb-3"
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder="Password"
-              onChange={handleChange}
-            />
+        {/* Right Side: Form */}
+        <div className="col-lg-6 auth-form-col">
+          <h3 className="auth-title">Welcome back!</h3>
+          <p className="auth-subtitle">
+            Welcome back! Please enter your details.
+          </p>
 
-            <span
-              onClick={() => setShowPassword(!showPassword)}
-              style={{
-                position: "absolute",
-                right: "10px",
-                top: "10px",
-                cursor: "pointer",
-              }}
-            >
-              {showPassword ? "🙈" : "👁️"}
-            </span>
-          </div>
-
-          <small className="text-danger">{errors.password}</small>
-
-          {/* OPTIONS */}
-          <div className="d-flex justify-content-between align-items-center mb-3 small">
-            <label>
+          <form onSubmit={handleSubmit}>
+            <div className="auth-input-group">
+              <label className="auth-label">Email</label>
               <input
-                type="checkbox"
-                name="rememberMe"
+                className="auth-input"
+                type="email"
+                name="email"
+                placeholder=""
                 onChange={handleChange}
-                className="me-1"
               />
-              Remember me
-            </label>
+              <small className="text-danger">{errors.email}</small>
+            </div>
 
-            <Link to="/forgot-password" className="fw-bold text-decoration-none text-primary">
-              Forgot?
+            <div className="auth-input-group password-wrapper">
+              <label className="auth-label">Password</label>
+              <input
+                className="auth-input"
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder=""
+                onChange={handleChange}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? "🙈" : "👁️"}
+              </button>
+              <small className="text-danger d-block">{errors.password}</small>
+            </div>
+
+            <div className="auth-options">
+              <label>
+                <input
+                  type="checkbox"
+                  name="rememberMe"
+                  onChange={handleChange}
+                  className="auth-checkbox"
+                />
+                Remember me
+              </label>
+
+              <Link to="/forgot-password" className="auth-link">
+                Forgot Password
+              </Link>
+            </div>
+
+            <button className="auth-button" type="submit" disabled={isLoading}>
+              {isLoading ? "Logging in..." : "Log in"}
+            </button>
+          </form>
+
+          <div className="auth-footer">
+            Don't have an account?{" "}
+            <Link to="/register" className="auth-footer-link">
+              Sign up for free
             </Link>
           </div>
-
-          {/* BUTTON */}
-          <button
-            className="btn w-100 fw-bold text-white"
-            style={{
-              background: "linear-gradient(90deg, #0f6bb6, #0349a5)",
-            }}
-            type="submit"
-            disabled={isLoading}
-          >
-            {isLoading ? "Loading..." : "LOGIN"}
-          </button>
-        </form>
-
-        <p className="text-center mt-3">
-          Don't have account?{" "}
-          <Link to="/register" className="fw-bold text-decoration-none text-primary">
-            Create
-          </Link>
-        </p>
+        </div>
       </div>
     </div>
   );
