@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using TaskFlow.Data;
-using TaskFlow.models;
+using TaskFlow.Models;
 
 namespace TaskFlow.Services
 {

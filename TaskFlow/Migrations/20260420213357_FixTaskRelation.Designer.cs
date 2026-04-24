@@ -170,7 +170,7 @@ namespace TaskFlow.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("TaskFlow.models.Comment", b =>
+            modelBuilder.Entity("TaskFlow.Models.Comment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -226,7 +226,7 @@ namespace TaskFlow.Migrations
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("TaskFlow.models.Comment", b =>
+            modelBuilder.Entity("TaskFlow.Models.Comment", b =>
                 {
                     b.HasOne("TaskFlow.Models.TaskItem", "TaskItem")
                         .WithMany()
