@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TaskFlow.Data;
 using TaskFlow.Interfaces;
+using TaskFlow.Middlewares;
 using TaskFlow.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -89,6 +90,8 @@ builder.Services.Configure<FormOptions>(options =>
 });
 
 var app = builder.Build();
+
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 // إعدادات الـ Middleware
 if (app.Environment.IsDevelopment())
