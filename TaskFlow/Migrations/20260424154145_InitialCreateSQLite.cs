@@ -6,11 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TaskFlow.Migrations
 {
     /// <inheritdoc />
-<<<<<<<< HEAD:TaskFlow/Migrations/20260424144431_InitialCreateSQLite.cs
     public partial class InitialCreateSQLite : Migration
-========
-    public partial class UpdateNotificationTable : Migration
->>>>>>>> ed76ece102752b0e19a17eadadaadb85e40f62f1:TaskFlow/Migrations/20260422204728_UpdateNotificationTable.cs
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

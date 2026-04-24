@@ -11,8 +11,8 @@ using TaskFlow.Data;
 namespace TaskFlow.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260422204728_UpdateNotificationTable")]
-    partial class UpdateNotificationTable
+    [Migration("20260424154145_InitialCreateSQLite")]
+    partial class InitialCreateSQLite
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
