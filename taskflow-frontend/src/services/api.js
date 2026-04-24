@@ -80,11 +80,6 @@ export const getAllTasks = async () => {
   return res.data;
 };
 
-export const getTaskById = async (taskId) => {
-  const res = await api.get(`/tasks/${taskId}`);
-  return res.data;
-};
-
 // 🔹 GET project members
 export const getProjectMembers = async (projectId) => {
   const res = await api.get(`/projects/${projectId}/members`);
