@@ -59,13 +59,15 @@ function Login() {
         password: formData.password,
       });
 
-      login(response.data.message);
+      alert(response.data.message);
+      login(response.data.token || response.data.message);
       navigate("/dashboard");
     } catch (err) {
+      alert(err.response?.data?.message || err.response?.data || "Login failed. Please check your credentials.");
       setErrors({
         ...errors,
         password:
-          err.response?.data || "Login failed. Please check your credentials.",
+          err.response?.data?.message || err.response?.data || "Login failed. Please check your credentials.",
       });
     } finally {
       setIsLoading(false);

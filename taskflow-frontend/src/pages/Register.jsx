@@ -88,22 +88,21 @@ function Register() {
     setErrors({});
 
     try {
-      await api.post("/Auth/register", {
+      const response = await api.post("/Auth/register", {
         fullName: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
         password: formData.password,
         role: parseInt(formData.role, 10),
       });
 
-      alert("Registered Successfully 🎉");
+      alert(response.data.message);
       navigate("/");
     } catch (err) {
+      const errMsg = err.response?.data?.message || err.response?.data || "Registration failed.";
+      alert(errMsg);
       setErrors({
         ...errors,
-        jobTitle:
-          err.response?.data?.message ||
-          err.response?.data ||
-          "Registration failed.",
+        jobTitle: errMsg,
       });
     } finally {
       setIsLoading(false);

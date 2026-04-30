@@ -47,12 +47,12 @@ namespace TaskFlow.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public async Task<string> RegisterAsync(RegisterDto dto)
+        public async Task<(bool Success, string Message)> RegisterAsync(RegisterDto dto)
         {
             // 1. التأكد إن الإيميل مش موجود قبل كده
             if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
             {
-                return "User already exists!";
+                return (false, "User already exists!");
             }
 
             // 2. تشفير الباسورد باستخدام BCrypt
@@ -74,40 +74,40 @@ namespace TaskFlow.Services
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return "User registered successfully!";
+            return (true, "User registered successfully!");
         }
 
         
-        public async Task<string> LoginAsync(LoginDto dto){
+        public async Task<(bool Success, string TokenOrMessage)> LoginAsync(LoginDto dto){
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
 
             if (user == null)
-                return "Invalid credentials";
+                return (false, "Invalid credentials");
                 
             try
             {
                 if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-                    return "Invalid credentials";
+                    return (false, "Invalid credentials");
             }
             catch (BCrypt.Net.SaltParseException)
             {
                 // لو في اي مشكلة بنعرض رسالة صغيرة بدل ما البرنامج كله يضرب في وش اليوزر
-                return "Invalid credentials";
+                return (false, "Invalid credentials");
             }
 
             // اتاكد ان البروجكت مانجر معموله ابروف
             if (user.IsRejected)
             {
-                return "Your account has been rejected. You cannot login or register again.";
+                return (false, "Your account has been rejected. You cannot login or register again.");
             }
             if (!user.IsApproved)
             {
-                return "Your account is pending admin approval.";
+                return (false, "Your account is pending admin approval.");
             }
 
 
             // لو كل حاجة صح، بنرجع الـ Token
-            return GenerateJwtToken(user);
+            return (true, GenerateJwtToken(user));
         }
     }
 }
