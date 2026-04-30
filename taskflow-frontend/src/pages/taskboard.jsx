@@ -101,8 +101,8 @@ const TaskBoard = () => {
     assignedUserName: task?.assignedUserName ?? task?.AssignedUserName ?? '',
     createdByUserId: task?.createdByUserId ?? task?.CreatedByUserId ?? null,
     createdByUserName: task?.createdByUserName ?? task?.CreatedByUserName ?? '',
-    commentsCount: task?.comments?.length ?? 0,
-    attachmentsCount: task?.attachments?.length ?? 0,
+    commentsCount: task?.commentsCount ?? task?.comments?.length ?? 0,
+    attachmentsCount: task?.attachmentsCount ?? task?.attachments?.length ?? 0,
   });
 
   const normalizedTasks = filteredTasks.map(normalizeTask);

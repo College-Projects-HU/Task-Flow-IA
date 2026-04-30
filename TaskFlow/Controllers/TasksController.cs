@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -37,11 +37,21 @@ namespace TaskFlow.Controllers
 
             var tasks = await _context.Tasks
                 .Where(t => t.ProjectId == projectId)
-                .OrderBy(t => t.DueDate)
+                .Select(t => new {
+                    Task = t,
+                    CommentsCount = _context.Comments.Count(c => c.TaskId == t.Id),
+                    AttachmentsCount = _context.Attachments.Count(a => a.TaskId == t.Id)
+                })
+                .OrderBy(t => t.Task.DueDate)
                 .ToListAsync();
 
             var response = tasks
-                .Select(task => MapTaskResponse(task, assignedUsers))
+                .Select(item => {
+                    var dto = MapTaskResponse(item.Task, assignedUsers);
+                    dto.CommentsCount = item.CommentsCount;
+                    dto.AttachmentsCount = item.AttachmentsCount;
+                    return dto;
+                })
                 .ToList();
 
             return Ok(response);
@@ -83,15 +93,25 @@ namespace TaskFlow.Controllers
             // Admins see all tasks (no filter)
 
             var tasks = await tasksQuery
-                .OrderBy(t => t.DueDate)
+                .Select(t => new {
+                    Task = t,
+                    CommentsCount = _context.Comments.Count(c => c.TaskId == t.Id),
+                    AttachmentsCount = _context.Attachments.Count(a => a.TaskId == t.Id)
+                })
+                .OrderBy(t => t.Task.DueDate)
                 .ToListAsync();
 
             var response = tasks
-                .Select(task => MapTaskResponse(
-                    task,
-                    assignedUsers,
-                    projects.ContainsKey(task.ProjectId) ? projects[task.ProjectId] : "Unknown Project"
-                ))
+                .Select(item => {
+                    var dto = MapTaskResponse(
+                        item.Task,
+                        assignedUsers,
+                        projects.ContainsKey(item.Task.ProjectId) ? projects[item.Task.ProjectId] : "Unknown Project"
+                    );
+                    dto.CommentsCount = item.CommentsCount;
+                    dto.AttachmentsCount = item.AttachmentsCount;
+                    return dto;
+                })
                 .ToList();
 
             return Ok(response);
@@ -135,6 +155,8 @@ namespace TaskFlow.Controllers
                 .ToListAsync();
 
             var response = MapTaskResponse(task, assignedUsers, comments: comments, attachments: attachments);
+            response.CommentsCount = comments.Count;
+            response.AttachmentsCount = attachments.Count;
             return Ok(response);
         }
 
@@ -286,6 +308,8 @@ namespace TaskFlow.Controllers
                 .ToListAsync();
 
             var response = MapTaskResponse(task, assignedUsers, comments: comments, attachments: attachments);
+            response.CommentsCount = comments.Count;
+            response.AttachmentsCount = attachments.Count;
             return Ok(response);
         }
 

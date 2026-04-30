@@ -21,5 +21,7 @@ namespace TaskFlow.DTOs
         public TaskStatusModel Status { get; set; }
         public List<TaskCommentResponseDto> Comments { get; set; } = new();
         public List<TaskAttachmentResponseDto> Attachments { get; set; } = new();
+        public int CommentsCount { get; set; }
+        public int AttachmentsCount { get; set; }
     }
 }
