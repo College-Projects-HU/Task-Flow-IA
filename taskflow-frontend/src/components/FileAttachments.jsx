@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { API_ORIGIN, uploadAttachment, getAttachments } from "../services/api";
 
 const FileAttachments = ({ taskId }) => {
   const [files, setFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [progress, setProgress] = useState(0);
+  const fileInputRef = useRef(null);
 
   // 📥 GET files
   const fetchFiles = async () => {
@@ -35,9 +36,12 @@ const FileAttachments = ({ taskId }) => {
 
       setSelectedFile(null);
       setProgress(0);
+      if (fileInputRef.current) fileInputRef.current.value = "";
       fetchFiles(); // refresh list
     } catch (err) {
       console.log(err);
+      setProgress(0);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -59,6 +63,7 @@ const FileAttachments = ({ taskId }) => {
         <input
           type="file"
           className="taskdetail-file-input"
+          ref={fileInputRef}
           onChange={(e) => setSelectedFile(e.target.files[0])}
         />
 
@@ -88,12 +93,13 @@ const FileAttachments = ({ taskId }) => {
 
         {files.map((file) => (
           <li key={file.id} className="taskdetail-file-item">
-            <span className="taskdetail-file-name">{getFileName(file.filePath)}</span>
+            <span className="taskdetail-file-name">{file.fileName || getFileName(file.url)}</span>
 
             <a
-              href={`${API_ORIGIN}/${file.filePath}`}
+              href={`${API_ORIGIN}${file.url?.startsWith('/') ? '' : '/'}${file.url}`}
               target="_blank"
               rel="noreferrer"
+              download={file.fileName}
               className="taskdetail-file-link"
             >
               Download

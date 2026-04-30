@@ -1,6 +1,11 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { uploadAttachment, getAttachments, getTaskById, API_ORIGIN } from "../services/api";
+import { useEffect, useState, useRef } from "react";
+import {
+  uploadAttachment,
+  getAttachments,
+  getTaskById,
+  API_ORIGIN,
+} from "../services/api";
 import DashboardLayout from "../components/DashboardLayout";
 import "./ProjectsPage.css";
 
@@ -13,18 +18,20 @@ const TaskAttachments = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(true);
+  const fileInputRef = useRef(null);
 
   const fetchData = async () => {
     try {
       setLoading(true);
       const [taskData, attachmentsData] = await Promise.all([
         getTaskById(taskId),
-        getAttachments(taskId)
+        getAttachments(taskId),
       ]);
       setTask({
         id: taskData?.id ?? taskData?.Id,
         title: taskData?.title ?? taskData?.Title ?? "Untitled task",
-        projectName: taskData?.projectName ?? taskData?.ProjectName ?? "Project",
+        projectName:
+          taskData?.projectName ?? taskData?.ProjectName ?? "Project",
         projectId: taskData?.projectId ?? taskData?.ProjectId ?? null,
       });
       setFiles(attachmentsData);
@@ -53,11 +60,13 @@ const TaskAttachments = () => {
 
       setSelectedFile(null);
       setProgress(0);
+      if (fileInputRef.current) fileInputRef.current.value = "";
       const updatedFiles = await getAttachments(taskId);
       setFiles(updatedFiles);
     } catch (err) {
       console.log(err);
       setProgress(0);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -144,6 +153,7 @@ const TaskAttachments = () => {
             <input
               type="file"
               className="form-control"
+              ref={fileInputRef}
               style={{
                 flex: 1,
                 border: "1px solid #cfdbec",
@@ -162,8 +172,9 @@ const TaskAttachments = () => {
               style={{
                 padding: "0.6rem 1.5rem",
                 minWidth: "140px",
-                opacity: (!selectedFile || progress > 0) ? 0.7 : 1,
-                cursor: (!selectedFile || progress > 0) ? "not-allowed" : "pointer"
+                opacity: !selectedFile || progress > 0 ? 0.7 : 1,
+                cursor:
+                  !selectedFile || progress > 0 ? "not-allowed" : "pointer",
               }}
             >
               {progress > 0 ? `Uploading ${progress}%` : "Upload File"}
@@ -237,7 +248,7 @@ const TaskAttachments = () => {
                           className="project-task-title"
                           style={{ margin: 0, fontSize: "1.05rem" }}
                         >
-                          {getFileName(file.filePath)}
+                          {file.fileName || getFileName(file.url)}
                         </p>
                       </div>
                     </div>
@@ -255,9 +266,10 @@ const TaskAttachments = () => {
                     style={{ justifyContent: "flex-start" }}
                   >
                     <a
-                      href={`${API_ORIGIN}/${file.filePath}`}
+                      href={`${file.url?.startsWith("/") ? "" : "/"}${file.url}`}
                       target="_blank"
                       rel="noreferrer"
+                      download={file.fileName}
                       className="task-action-btn"
                       style={{
                         textDecoration: "none",
@@ -285,8 +297,15 @@ const TaskAttachments = () => {
                 📭
               </span>
               <h4>No files uploaded yet</h4>
-              <p style={{ color: "#64748b", maxWidth: "400px", margin: "0 auto" }}>
-                Select a file and click Upload to add an attachment to this task.
+              <p
+                style={{
+                  color: "#64748b",
+                  maxWidth: "400px",
+                  margin: "0 auto",
+                }}
+              >
+                Select a file and click Upload to add an attachment to this
+                task.
               </p>
             </div>
           )}

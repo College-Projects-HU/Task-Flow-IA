@@ -5,7 +5,6 @@ const api = axios.create({
 });
 
 export const API_BASE_URL = api.defaults.baseURL;
-export const API_ORIGIN = new URL(API_BASE_URL).origin;
 
 // 🔐 interceptor - هذا الجزء يضمن إضافة التوكن لكل الطلبات تلقائياً
 api.interceptors.request.use(
