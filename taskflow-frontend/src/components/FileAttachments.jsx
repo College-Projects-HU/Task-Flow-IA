@@ -66,13 +66,17 @@ const FileAttachments = ({ taskId }) => {
           type="button"
           className="taskdetail-upload-btn"
           onClick={handleUpload}
+          disabled={!selectedFile || progress > 0}
+          style={{ opacity: (!selectedFile || progress > 0) ? 0.7 : 1, cursor: (!selectedFile || progress > 0) ? "not-allowed" : "pointer" }}
         >
-          Upload
+          {progress > 0 ? `Uploading ${progress}%` : "Upload"}
         </button>
       </div>
 
       {progress > 0 && (
-        <small className="taskdetail-upload-progress">Uploading: {progress}%</small>
+        <div style={{ width: "100%", backgroundColor: "#e4ecf8", height: "6px", borderRadius: "3px", margin: "1rem 0", overflow: "hidden" }}>
+          <div style={{ width: `${progress}%`, backgroundColor: "#2968d8", height: "100%", borderRadius: "3px", transition: "width 0.2s ease-in-out" }}></div>
+        </div>
       )}
 
       <ul className="taskdetail-file-list">
