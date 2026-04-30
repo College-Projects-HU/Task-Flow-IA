@@ -47,12 +47,12 @@ namespace TaskFlow.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public async Task<(bool Success, string Message)> RegisterAsync(RegisterDto dto)
+        public async Task<(bool Success, string Message, int? UserId)> RegisterAsync(RegisterDto dto)
         {
             // 1. التأكد إن الإيميل مش موجود قبل كده
             if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
             {
-                return (false, "User already exists!");
+                return (false, "User already exists!", null);
             }
 
             // 2. تشفير الباسورد باستخدام BCrypt
@@ -68,13 +68,13 @@ namespace TaskFlow.Services
                 PasswordHash = passwordHash,
                 Role = dto.Role,
                 CreatedAt = DateTime.UtcNow,
-                IsApproved = dto.Role == Role.Member ? true : false // الميمبر بياخد اوتو ابروف، المانجر بيحتاج ادمن بعمله ابروف
+                IsApproved = (dto.Role == Role.Member || dto.Role == Role.Admin) ? true : false // الميمبر والأدمن بياخدوا اوتو ابروف، المانجر بيحتاج ادمن بعمله ابروف
             };
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return (true, "User registered successfully!");
+            return (true, "User registered successfully!", user.Id);
         }
 
         

@@ -18,9 +18,9 @@ namespace TaskFlow.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDto dto)
         {
-            var (success, message) = await _authService.RegisterAsync(dto);
+            var (success, message, userId) = await _authService.RegisterAsync(dto);
             if (!success) return BadRequest(new { message });
-            return Ok(new { message });
+            return Ok(new { message, userId });
         }
 
         [HttpPost("login")]

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import DashboardLayout from "../components/DashboardLayout";
+import CreateUserModal from "../components/CreateUserModal";
 
 export default function AdminPage() {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchPendingUsers = async () => {
     try {
@@ -107,8 +109,23 @@ export default function AdminPage() {
               </table>
             </div>
           )}
+          <div style={{ padding: '1.5rem', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-start' }}>
+            <button 
+              className="dashboard-link-btn" 
+              style={{ background: '#3b82f6', color: '#fff', border: 'none', cursor: 'pointer', padding: '0.6rem 1.2rem', fontSize: '0.875rem', borderRadius: '0.375rem' }}
+              onClick={() => setIsModalOpen(true)}
+            >
+              Create User
+            </button>
+          </div>
         </article>
       </section>
+
+      <CreateUserModal 
+        show={isModalOpen}
+        handleClose={() => setIsModalOpen(false)}
+        onSuccess={fetchPendingUsers}
+      />
     </DashboardLayout>
   );
 }
