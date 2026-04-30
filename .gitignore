@@ -9,6 +9,7 @@
 # .NET core
 bin/
 obj/
+wwwroot
 
 # Local configuration files
 appsettings.Development.json

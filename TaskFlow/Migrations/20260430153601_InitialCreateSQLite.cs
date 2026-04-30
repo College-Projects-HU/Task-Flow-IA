@@ -70,6 +70,7 @@ namespace TaskFlow.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     Title = table.Column<string>(type: "TEXT", nullable: false),
                     Description = table.Column<string>(type: "TEXT", nullable: false),
+                    CreatedByUserId = table.Column<int>(type: "INTEGER", nullable: false),
                     AssignedMemberId = table.Column<int>(type: "INTEGER", nullable: true),
                     ProjectId = table.Column<int>(type: "INTEGER", nullable: false),
                     Priority = table.Column<string>(type: "TEXT", nullable: false),
@@ -90,6 +91,12 @@ namespace TaskFlow.Migrations
                         column: x => x.AssignedMemberId,
                         principalTable: "Users",
                         principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Tasks_Users_CreatedByUserId",
+                        column: x => x.CreatedByUserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -163,6 +170,11 @@ namespace TaskFlow.Migrations
                 name: "IX_Tasks_AssignedMemberId",
                 table: "Tasks",
                 column: "AssignedMemberId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tasks_CreatedByUserId",
+                table: "Tasks",
+                column: "CreatedByUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tasks_ProjectId",
