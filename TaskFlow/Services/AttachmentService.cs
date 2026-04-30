@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TaskFlow.Data;
 using TaskFlow.Models;
 using TaskFlow.DTOs;
@@ -84,6 +84,25 @@ namespace TaskFlow.Services
                     Url = a.FilePath
                 })
                 .ToListAsync();
+        }
+
+        public async Task Delete(int id, int userId, string userRole)
+        {
+            var attachment = await _context.Attachments.FindAsync(id);
+            if (attachment == null)
+                throw new Exception("Attachment not found");
+
+            if (attachment.UploadedByUserId != userId && userRole != "Admin" && userRole != "ProjectManager")
+                throw new Exception("Unauthorized to delete this attachment");
+
+            var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", attachment.FilePath.TrimStart('/'));
+            if (File.Exists(fullPath))
+            {
+                File.Delete(fullPath);
+            }
+
+            _context.Attachments.Remove(attachment);
+            await _context.SaveChangesAsync();
         }
     }
 }

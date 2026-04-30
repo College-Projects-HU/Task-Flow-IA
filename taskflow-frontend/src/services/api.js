@@ -5,6 +5,7 @@ const api = axios.create({
 });
 
 export const API_BASE_URL = api.defaults.baseURL;
+export const API_ORIGIN = new URL(API_BASE_URL).origin;
 
 // 🔐 interceptor - هذا الجزء يضمن إضافة التوكن لكل الطلبات تلقائياً
 api.interceptors.request.use(
@@ -124,6 +125,12 @@ export const uploadAttachment = (taskId, formData, onUploadProgress) => {
 // 🔹 GET attachments
 export const getAttachments = async (taskId) => {
   const res = await api.get(`/tasks/${taskId}/attachments`);
+  return res.data;
+};
+
+// 🔹 DELETE attachment
+export const deleteAttachment = async (attachmentId) => {
+  const res = await api.delete(`/attachments/${attachmentId}`);
   return res.data;
 };
 

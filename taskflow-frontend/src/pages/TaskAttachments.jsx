@@ -4,7 +4,7 @@ import {
   uploadAttachment,
   getAttachments,
   getTaskById,
-  API_ORIGIN,
+  deleteAttachment,
 } from "../services/api";
 import DashboardLayout from "../components/DashboardLayout";
 import "./ProjectsPage.css";
@@ -73,6 +73,18 @@ const TaskAttachments = () => {
   const getFileName = (filePath) => {
     if (!filePath) return "Attachment";
     return filePath.split("/").pop();
+  };
+
+  const handleDelete = async (fileId) => {
+    if (!window.confirm("Are you sure you want to delete this attachment?"))
+      return;
+    try {
+      await deleteAttachment(fileId);
+      setFiles(files.filter((f) => f.id !== fileId));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete attachment. You might not have permission.");
+    }
   };
 
   if (loading) {
@@ -263,10 +275,10 @@ const TaskAttachments = () => {
 
                   <div
                     className="project-task-actions"
-                    style={{ justifyContent: "flex-start" }}
+                    style={{ justifyContent: "flex-start", gap: "0.5rem" }}
                   >
                     <a
-                      href={`${file.url?.startsWith("/") ? "" : "/"}${file.url}`}
+                      href={file.url}
                       target="_blank"
                       rel="noreferrer"
                       download={file.fileName}
@@ -281,6 +293,19 @@ const TaskAttachments = () => {
                     >
                       Download
                     </a>
+                    <button
+                      type="button"
+                      className="task-action-btn"
+                      onClick={() => handleDelete(file.id)}
+                      style={{
+                        color: "#d24b4b",
+                        borderColor: "#fecaca",
+                        backgroundColor: "#fff5f5",
+                        padding: "0.55rem 1rem",
+                      }}
+                    >
+                      Delete
+                    </button>
                   </div>
                 </article>
               ))}

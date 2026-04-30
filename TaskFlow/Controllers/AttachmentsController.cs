@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using TaskFlow.DTOs;
@@ -41,6 +41,24 @@ namespace TaskFlow.Controllers
                 FileSize = x.FileSize,
                 Url = $"{Request.Scheme}://{Request.Host}{x.Url}"
             }));
+        }
+
+        [HttpDelete("attachments/{id:int}")]
+        [Authorize]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+            var userRole = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
+
+            try
+            {
+                await _attachmentService.Delete(id, userId, userRole);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }
