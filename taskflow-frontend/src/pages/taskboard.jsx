@@ -4,6 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import DashboardLayout from '../components/DashboardLayout';
 import CreateTaskModal from '../components/CreateTaskModal';
 import EditTaskModal from '../components/EditTaskModal';
+import TaskDetailPage from './TaskDetailPage';
 import api, { getAllTasks, getProjects } from '../services/api';
 import './TaskBoard.css';
 
@@ -20,6 +21,7 @@ const TaskBoard = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [selectedTaskDetailId, setSelectedTaskDetailId] = useState(null);
 
   // Fetch all tasks and projects
   const fetchTasks = async () => {
@@ -125,7 +127,7 @@ const TaskBoard = () => {
     };
 
     return (
-      <div className="taskboard-card" onClick={() => navigate(`/tasks/${task.id}`)}>
+      <div className="taskboard-card" onClick={() => setSelectedTaskDetailId(task.id)}>
         <div className="taskboard-card-project">
           <span className="taskboard-card-project-badge">{task.projectName}</span>
         </div>
@@ -316,6 +318,16 @@ const TaskBoard = () => {
         task={selectedTask}
         onTaskUpdated={handleTaskUpdated}
       />
+
+      {selectedTaskDetailId && (
+        <TaskDetailPage
+          taskId={selectedTaskDetailId}
+          onClose={() => {
+            setSelectedTaskDetailId(null);
+            fetchTasks();
+          }}
+        />
+      )}
     </DashboardLayout>
   );
 };

@@ -5,6 +5,7 @@ import { AuthContext } from "../context/AuthContext";
 import CreateTaskModal from "../components/CreateTaskModal";
 import EditTaskModal from "../components/EditTaskModal";
 import DashboardLayout from "../components/DashboardLayout";
+import TaskDetailPage from "./TaskDetailPage";
 import "./ProjectsPage.css";
 import { useNavigate } from "react-router-dom";
 
@@ -59,6 +60,7 @@ const ProjectDetail = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [selectedTaskDetailId, setSelectedTaskDetailId] = useState(null);
 
   const normalizeTask = (task) => ({
     id: task?.id ?? task?.Id,
@@ -235,7 +237,7 @@ const ProjectDetail = () => {
                     <button
                       type="button"
                       className="project-task-title"
-                      onClick={() => navigate(`/tasks/${task.id}`)}
+                      onClick={() => setSelectedTaskDetailId(task.id)}
                     >
                       {task.title}
                     </button>
@@ -285,7 +287,7 @@ const ProjectDetail = () => {
                     <button
                       type="button"
                       className="task-action-btn"
-                      onClick={() => navigate(`/tasks/${task.id}`)}
+                      onClick={() => setSelectedTaskDetailId(task.id)}
                     >
                       Open
                     </button>
@@ -325,6 +327,16 @@ const ProjectDetail = () => {
         task={selectedTask}
         onTaskUpdated={fetchProject}
       />
+
+      {selectedTaskDetailId && (
+        <TaskDetailPage
+          taskId={selectedTaskDetailId}
+          onClose={() => {
+            setSelectedTaskDetailId(null);
+            fetchProject(); // refresh task stats just in case!
+          }}
+        />
+      )}
     </DashboardLayout>
   );
 };
