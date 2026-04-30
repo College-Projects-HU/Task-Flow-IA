@@ -39,6 +39,8 @@ export const createProject = async (data) => {
   const res = await api.post("/projects", {
     name: data.name,
     description: data.description,
+    startDate: data.startDate || null,
+    endDate: data.endDate || null,
   });
 
   const p = res.data;
@@ -47,6 +49,8 @@ export const createProject = async (data) => {
     id: p.id,
     name: p.name,
     description: p.description,
+    startDate: p.startDate,
+    endDate: p.endDate,
     taskCount: 0,
     createdAt: new Date().toISOString().split("T")[0],
   };

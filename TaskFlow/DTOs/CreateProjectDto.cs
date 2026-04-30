@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace TaskFlow.DTOs
 {
@@ -10,5 +10,8 @@ namespace TaskFlow.DTOs
 
         [MaxLength(500)]
         public string? Description { get; set; }
+
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
     }
 }

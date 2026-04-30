@@ -4,6 +4,8 @@ const CreateProjectModal = ({ show, handleClose, onCreate }) => {
   const [form, setForm] = useState({
     name: "",
     description: "",
+    startDate: "",
+    endDate: "",
   });
 
   const handleChange = (e) => {
@@ -26,7 +28,7 @@ const CreateProjectModal = ({ show, handleClose, onCreate }) => {
     onCreate(newProject);
     handleClose();
 
-    setForm({ name: "", description: "" });
+    setForm({ name: "", description: "", startDate: "", endDate: "" });
   };
 
   if (!show) return null;
@@ -41,7 +43,7 @@ const CreateProjectModal = ({ show, handleClose, onCreate }) => {
 
       <div className="modal show d-block" tabIndex="-1">
         <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content custom-modal">
+          <div className="modal-content custom-modal bg-dark text-white border border-secondary shadow-lg">
             
             {/* Header */}
             <div className="modal-header border-0">
@@ -59,11 +61,11 @@ const CreateProjectModal = ({ show, handleClose, onCreate }) => {
                 
                 {/* Name */}
                 <div className="mb-3">
-                  <label className="form-label">Project Name</label>
+                  <label className="form-label">Project Name *</label>
                   <input
                     type="text"
                     name="name"
-                    className="form-control custom-input"
+                    className="form-control"
                     value={form.name}
                     onChange={handleChange}
                     placeholder="Enter project name..."
@@ -76,11 +78,35 @@ const CreateProjectModal = ({ show, handleClose, onCreate }) => {
                   <label className="form-label">Description</label>
                   <textarea
                     name="description"
-                    className="form-control custom-input"
+                    className="form-control"
                     value={form.description}
                     onChange={handleChange}
                     placeholder="Enter description..."
                     rows="3"
+                  />
+                </div>
+
+                {/* Start Date */}
+                <div className="mb-3">
+                  <label className="form-label">Start Date</label>
+                  <input
+                    type="date"
+                    name="startDate"
+                    className="form-control"
+                    value={form.startDate}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* End Date */}
+                <div className="mb-3">
+                  <label className="form-label">End Date</label>
+                  <input
+                    type="date"
+                    name="endDate"
+                    className="form-control"
+                    value={form.endDate}
+                    onChange={handleChange}
                   />
                 </div>
               </div>
@@ -95,8 +121,8 @@ const CreateProjectModal = ({ show, handleClose, onCreate }) => {
                   Cancel
                 </button>
 
-                <button type="submit" className="btn btn-light">
-                  Create
+                <button type="submit" className="btn btn-light fw-semibold">
+                  Create Project
                 </button>
               </div>
             </form>

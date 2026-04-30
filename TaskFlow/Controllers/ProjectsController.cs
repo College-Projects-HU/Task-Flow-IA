@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -44,6 +44,8 @@ namespace TaskFlow.Controllers
                 Id = p.Id,
                 Name = p.Name ?? string.Empty,
                 Description = p.Description ?? string.Empty,
+                StartDate = p.StartDate,
+                EndDate = p.EndDate,
                 Tasks = p.Tasks.Select(t => t.Title).ToList()
             });
 
@@ -66,6 +68,8 @@ namespace TaskFlow.Controllers
                 Id = project.Id,
                 Name = project.Name ?? string.Empty,
                 Description = project.Description ?? string.Empty,
+                StartDate = project.StartDate,
+                EndDate = project.EndDate,
                 Tasks = project.Tasks.Select(t => t.Title).ToList()
             };
 
@@ -82,7 +86,9 @@ namespace TaskFlow.Controllers
             {
                 Name = dto.Name,
                 Description = dto.Description ?? string.Empty,
-                ProjectManagerId = userId
+                ProjectManagerId = userId,
+                StartDate = dto.StartDate,
+                EndDate = dto.EndDate
             };
 
             _service.Create(project);
@@ -103,6 +109,8 @@ namespace TaskFlow.Controllers
 
             project.Name = dto.Name;
             project.Description = dto.Description ?? string.Empty;
+            project.StartDate = dto.StartDate;
+            project.EndDate = dto.EndDate;
 
             _service.Update(project);
 
