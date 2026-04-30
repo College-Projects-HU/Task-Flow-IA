@@ -18,16 +18,17 @@ namespace TaskFlow.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDto dto)
         {
-            var result = await _authService.RegisterAsync(dto);
-            return Ok(new { message = result });
+            var (success, message) = await _authService.RegisterAsync(dto);
+            if (!success) return BadRequest(new { message });
+            return Ok(new { message });
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto dto)
         {
-            var result = await _authService.LoginAsync(dto);
-            if (result.Contains("Invalid")) return BadRequest(result);
-            return Ok(new { message = result });
+            var (success, result) = await _authService.LoginAsync(dto);
+            if (!success) return BadRequest(new { message = result });
+            return Ok(new { token = result, message = "Login successful!" });
         }
     }
 }
