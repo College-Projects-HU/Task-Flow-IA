@@ -59,6 +59,8 @@ function TaskDetailPage({ taskId: propTaskId, onClose }) {
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [statusUpdating, setStatusUpdating] = useState(false);
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  const STATUSES = ["ToDo", "InProgress", "Done"];
 
   useEffect(() => {
     const fetchTask = async () => {
@@ -132,15 +134,21 @@ function TaskDetailPage({ taskId: propTaskId, onClose }) {
     if (!task || !nextStatus) {
       return;
     }
+    handleStatusChange(nextStatus);
+  };
+
+  const handleStatusChange = async (newStatus) => {
+    if (!task || task.status === newStatus) return;
 
     try {
       setStatusUpdating(true);
-      await updateTaskStatus(task.id, nextStatus);
-      setTask((current) => (current ? { ...current, status: nextStatus } : current));
+      await updateTaskStatus(task.id, newStatus);
+      setTask((current) => (current ? { ...current, status: newStatus } : current));
     } catch (error) {
       console.error("Failed to update status", error);
     } finally {
       setStatusUpdating(false);
+      setStatusDropdownOpen(false);
     }
   };
 
@@ -202,20 +210,83 @@ function TaskDetailPage({ taskId: propTaskId, onClose }) {
 
               <div className="taskdetail-meta-row">
                 <span>Status</span>
-                <div className="taskdetail-status-cell">
-                  <strong className={`taskdetail-chip ${getStatusTone(task.status)}`}>
-                    {task.status === "InProgress" ? "In Progress" : task.status}
-                  </strong>
+                <div className="taskdetail-status-cell" style={{ position: "relative" }}>
+                  <div 
+                    className={`taskdetail-chip ${getStatusTone(task.status)}`}
+                    onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+                    style={{ 
+                      cursor: "pointer", 
+                      display: "flex", 
+                      justifyContent: "space-between", 
+                      alignItems: "center",
+                      padding: "0 1rem", 
+                      width: "140px",
+                      userSelect: "none"
+                    }}
+                  >
+                    <span>{task.status === "InProgress" ? "In Progress" : task.status}</span>
+                    <span style={{ fontSize: "0.75rem", opacity: 0.8 }}>▼</span>
+                  </div>
+
+                  {statusDropdownOpen && (
+                    <div style={{
+                      position: "absolute",
+                      top: "100%",
+                      left: 0,
+                      marginTop: "0.5rem",
+                      background: "#fff",
+                      border: "1px solid #e5edf8",
+                      borderRadius: "12px",
+                      boxShadow: "0 8px 24px rgba(148, 163, 184, 0.15)",
+                      zIndex: 10,
+                      width: "140px",
+                      overflow: "hidden"
+                    }}>
+                      {STATUSES.map(s => (
+                        <div
+                          key={s}
+                          onClick={() => handleStatusChange(s)}
+                          style={{
+                            padding: "0.6rem 1rem",
+                            cursor: "pointer",
+                            fontSize: "0.9rem",
+                            fontWeight: "600",
+                            color: task.status === s ? "#17325c" : "#64748b",
+                            background: task.status === s ? "#f8fafc" : "#fff",
+                            borderBottom: "1px solid #f1f5f9",
+                            transition: "background 0.2s"
+                          }}
+                          onMouseEnter={(e) => { if (task.status !== s) e.target.style.background = "#f1f5f9"; }}
+                          onMouseLeave={(e) => { if (task.status !== s) e.target.style.background = "#fff"; }}
+                        >
+                          {s === "InProgress" ? "In Progress" : s}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   {nextStatus && (
                     <button
                       type="button"
                       className="taskdetail-advance-btn"
                       onClick={handleAdvanceStatus}
                       disabled={statusUpdating}
+                      title={`Move to ${nextStatus === "InProgress" ? "In Progress" : nextStatus}`}
+                      style={{ 
+                        padding: "0", 
+                        width: "32px",
+                        height: "32px",
+                        display: "flex", 
+                        alignItems: "center", 
+                        justifyContent: "center",
+                        borderRadius: "8px",
+                        border: "1px solid #d8e3f3",
+                        background: "#fff",
+                        color: "#64748b",
+                        cursor: statusUpdating ? "not-allowed" : "pointer"
+                      }}
                     >
-                      {statusUpdating
-                        ? "Saving..."
-                        : `Move to ${nextStatus === "InProgress" ? "In Progress" : nextStatus}`}
+                      {statusUpdating ? "..." : "▶"}
                     </button>
                   )}
                 </div>

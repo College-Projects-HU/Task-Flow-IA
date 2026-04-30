@@ -360,10 +360,6 @@ namespace TaskFlow.Controllers
             if (role == "Member" && task.AssignedMemberId != userId)
                 return StatusCode(403, new { message = "You can only update your own tasks." });
 
-            // منع الرجوع لورا
-            if ((int)dto.Status < (int)task.Status)
-                return BadRequest(new { message = "Invalid status transition." });
-
             task.Status = dto.Status;
 
             await _context.SaveChangesAsync();
