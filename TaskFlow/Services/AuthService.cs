@@ -96,6 +96,10 @@ namespace TaskFlow.Services
             }
 
             // اتاكد ان البروجكت مانجر معموله ابروف
+            if (user.IsRejected)
+            {
+                return "Your account has been rejected. You cannot login or register again.";
+            }
             if (!user.IsApproved)
             {
                 return "Your account is pending admin approval.";

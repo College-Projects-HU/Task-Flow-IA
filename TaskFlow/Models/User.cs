@@ -15,6 +15,7 @@ namespace TaskFlow.Models
         public string PasswordHash { get; set; }
         public Role Role { get; set; }
         public bool IsApproved { get; set; }
+        public bool IsRejected { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

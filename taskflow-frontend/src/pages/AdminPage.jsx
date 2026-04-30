@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import DashboardLayout from "../components/DashboardLayout";
 
 export default function AdminPage() {
   const [users, setUsers] = useState([]);
@@ -51,49 +52,63 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="container mt-5">
-      <h2>Admin Dashboard - Pending Project Managers</h2>
-      {error && <div className="alert alert-danger">{error}</div>}
+    <DashboardLayout
+      title="Admin Dashboard"
+      activeItem="admin"
+      subtitle="Manage Pending Project Managers"
+    >
+      {error && <div className="dashboard-error">{error}</div>}
       
-      {users.length === 0 ? (
-        <p>No pending users at the moment.</p>
-      ) : (
-        <div className="table-responsive mt-4">
-          <table className="table table-bordered table-striped">
-            <thead className="table-dark">
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Registration Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.fullName}</td>
-                  <td>{user.email}</td>
-                  <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                  <td>
-                    <button 
-                      className="btn btn-success btn-sm me-2" 
-                      onClick={() => handleApprove(user.id)}
-                    >
-                      Approve
-                    </button>
-                    <button 
-                      className="btn btn-danger btn-sm" 
-                      onClick={() => handleReject(user.id)}
-                    >
-                      Reject
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+      <section className="dashboard-grid">
+        <article className="dashboard-card" style={{ gridColumn: '1 / -1' }}>
+          <div className="dashboard-card-header">
+            <h4>Pending Users</h4>
+          </div>
+          {users.length === 0 ? (
+            <p className="dashboard-muted" style={{ padding: '1.5rem' }}>No pending users at the moment.</p>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid #e5e7eb', color: '#6b7280', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <th style={{ padding: '1rem' }}>Name</th>
+                    <th style={{ padding: '1rem' }}>Email</th>
+                    <th style={{ padding: '1rem' }}>Registration Date</th>
+                    <th style={{ padding: '1rem', textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <tr key={user.id} style={{ borderBottom: '1px solid #f3f7fc', transition: 'background-color 0.2s' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                      <td style={{ padding: '1rem', fontWeight: '500', color: '#1f2937' }}>{user.fullName}</td>
+                      <td style={{ padding: '1rem', color: '#4b5563' }}>{user.email}</td>
+                      <td style={{ padding: '1rem', color: '#6b7280', fontSize: '0.9rem' }}>{new Date(user.createdAt).toLocaleDateString()}</td>
+                      <td style={{ padding: '1rem', textAlign: 'right' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                          <button 
+                            className="dashboard-link-btn" 
+                            style={{ background: '#10b981', color: '#fff', border: 'none', cursor: 'pointer', padding: '0.4rem 0.8rem', fontSize: '0.875rem' }}
+                            onClick={() => handleApprove(user.id)}
+                          >
+                            Approve
+                          </button>
+                          <button 
+                            className="dashboard-link-btn" 
+                            style={{ background: '#ef4444', color: '#fff', border: 'none', cursor: 'pointer', padding: '0.4rem 0.8rem', fontSize: '0.875rem' }}
+                            onClick={() => handleReject(user.id)}
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </article>
+      </section>
+    </DashboardLayout>
   );
 }
