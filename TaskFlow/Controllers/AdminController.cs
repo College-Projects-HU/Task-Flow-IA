@@ -25,7 +25,7 @@ namespace TaskFlow.Controllers
         public async Task<IActionResult> GetPendingUsers()
         {
             var pendingUsers = await _context.Users
-                .Where(u => !u.IsApproved && u.Role == Role.ProjectManager)
+                .Where(u => !u.IsApproved && !u.IsRejected && u.Role == Role.ProjectManager)
                 .Select(u => new 
                 { 
                     u.Id, 
@@ -69,10 +69,11 @@ namespace TaskFlow.Controllers
                 return NotFound(new { message = "User not found or is not a project manager." });
             }
 
-            _context.Users.Remove(user);
+            user.IsApproved = false;
+            user.IsRejected = true;
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "User rejected and removed successfully." });
+            return Ok(new { message = "User rejected successfully." });
         }
     }
 }
