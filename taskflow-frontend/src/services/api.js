@@ -171,4 +171,9 @@ export const deleteSystemUser = async (id) => {
   return response.data;
 };
 
+export const unrejectSystemUser = async (id) => {
+  const response = await api.put(`/admin/users/${id}/unreject`);
+  return response.data;
+};
+
 export default api;

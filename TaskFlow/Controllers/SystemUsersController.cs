@@ -26,7 +26,7 @@ namespace TaskFlow.Controllers
         public async Task<IActionResult> GetSystemUsers()
         {
             var users = await _context.Users
-                .Where(u => u.IsApproved && !u.IsRejected)
+                .Where(u => u.IsApproved || u.IsRejected)
                 .Select(u => new SystemUserDto
                 {
                     Id = u.Id,

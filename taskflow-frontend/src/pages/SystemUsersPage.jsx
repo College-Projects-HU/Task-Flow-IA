@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { getSystemUsers, updateSystemUserRole, deleteSystemUser } from "../services/api";
+import { getSystemUsers, updateSystemUserRole, deleteSystemUser, unrejectSystemUser } from "../services/api";
 import DashboardLayout from "../components/DashboardLayout";
 import CreateUserModal from "../components/CreateUserModal";
 import "../App.css";
@@ -19,6 +19,7 @@ const SystemUsersPage = () => {
     const [error, setError] = useState(null);
     const [successMsg, setSuccessMsg] = useState(null);
     const [pendingRoleChanges, setPendingRoleChanges] = useState({});
+    const [pendingStateChanges, setPendingStateChanges] = useState({});
     
     const [isCreateUserModalOpen, setIsCreateUserModalOpen] = useState(false);
 
@@ -75,17 +76,40 @@ const SystemUsersPage = () => {
         }
     };
 
-    const handleDelete = async (userId) => {
-        const confirmed = window.confirm("Are you sure you want to remove this user? This will set their status to rejected.");
-        if (!confirmed) return;
+    const handleStateChange = (userId, newStateStr) => {
+        setPendingStateChanges(prev => ({
+            ...prev,
+            [userId]: newStateStr
+        }));
+    };
 
+    const saveStateChange = async (userId) => {
+        const newState = pendingStateChanges[userId];
+        if (newState === undefined) return;
+
+        // "Approved" -> unreject, "Rejected" -> delete
         try {
-            const res = await deleteSystemUser(userId);
-            setSuccessMsg(res.message || "User moved to rejected list.");
-            setUsers(prev => prev.filter(u => u.id !== userId));
+            if (newState === "Rejected") {
+                const confirmed = window.confirm("Are you sure you want to reject this user?");
+                if (!confirmed) return;
+                
+                const res = await deleteSystemUser(userId);
+                setSuccessMsg(res.message || "User moved to rejected list.");
+                setUsers(prev => prev.map(u => u.id === userId ? { ...u, isRejected: true } : u));
+            } else if (newState === "Approved") {
+                const res = await unrejectSystemUser(userId);
+                setSuccessMsg(res.message || "User unrejected successfully.");
+                setUsers(prev => prev.map(u => u.id === userId ? { ...u, isRejected: false, isApproved: true } : u));
+            }
+            
+            setPendingStateChanges(prev => {
+                const updated = { ...prev };
+                delete updated[userId];
+                return updated;
+            });
             setTimeout(() => setSuccessMsg(null), 3000);
         } catch (err) {
-            setError(err.response?.data?.message || "Failed to delete user.");
+            setError(err.response?.data?.message || "Failed to update state.");
             setTimeout(() => setError(null), 3000);
         }
     };
@@ -132,6 +156,13 @@ const SystemUsersPage = () => {
                                         
                                     const roleChanged = pendingRoleChanges[u.id] !== undefined && pendingRoleChanges[u.id] !== u.role;
 
+                                    const originalState = u.isRejected ? "Rejected" : "Approved";
+                                    const currentStateValue = pendingStateChanges[u.id] !== undefined 
+                                        ? pendingStateChanges[u.id]
+                                        : originalState;
+
+                                    const stateChanged = pendingStateChanges[u.id] !== undefined && pendingStateChanges[u.id] !== originalState;
+
                                     return (
                                         <tr key={u.id}>
                                             <td>{u.fullName}</td>
@@ -160,14 +191,25 @@ const SystemUsersPage = () => {
                                             </td>
                                             <td>{new Date(u.createdAt).toLocaleDateString()}</td>
                                             <td>
-                                                <button 
-                                                    className="btn-sm"
+                                                <select 
+                                                    value={currentStateValue}
                                                     disabled={isSelf}
-                                                    onClick={() => handleDelete(u.id)}
-                                                    style={{ backgroundColor: isSelf ? '#ccc' : '#dc3545', border: 'none', color: 'white', padding: '5px 10px', borderRadius: '4px', cursor: isSelf ? 'not-allowed' : 'pointer' }}
+                                                    onChange={(e) => handleStateChange(u.id, e.target.value)}
+                                                    className="form-select state-select"
+                                                    style={{ display: 'inline-block', width: 'auto', marginRight: '10px' }}
                                                 >
-                                                    Delete
-                                                </button>
+                                                    <option value="Approved">Approved</option>
+                                                    <option value="Rejected">Rejected</option>
+                                                </select>
+                                                {stateChanged && (
+                                                    <button 
+                                                        className="btn-sm"
+                                                        onClick={() => saveStateChange(u.id)}
+                                                        style={{ backgroundColor: '#007bff', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }}
+                                                    >
+                                                        Save
+                                                    </button>
+                                                )}
                                             </td>
                                         </tr>
                                     );

@@ -75,5 +75,27 @@ namespace TaskFlow.Controllers
 
             return Ok(new { message = "User rejected successfully." });
         }
+
+        // PUT: api/admin/users/{id}/unreject
+        [HttpPut("users/{id}/unreject")]
+        public async Task<IActionResult> UnrejectUser(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found." });
+            }
+
+            if (!user.IsRejected)
+            {
+                return BadRequest(new { message = "User is not rejected." });
+            }
+
+            user.IsRejected = false;
+            user.IsApproved = true;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "User unrejected successfully." });
+        }
     }
 }
