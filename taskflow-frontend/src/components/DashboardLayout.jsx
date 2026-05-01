@@ -45,12 +45,20 @@ function DashboardLayout({ title, subtitle, activeItem, children }) {
             Tasks Board
           </NavLink>
           {role === "Admin" && (
-            <NavLink
-              to="/admin"
-              className={`dashboard-nav-item ${activeItem === "approvals" ? "active" : ""}`}
-            >
-              Approvals
-            </NavLink>
+            <>
+              <NavLink
+                to="/admin"
+                className={`dashboard-nav-item ${activeItem === "approvals" ? "active" : ""}`}
+              >
+                Approvals
+              </NavLink>
+              <NavLink
+                to="/system-users"
+                className={`dashboard-nav-item ${activeItem === "system-users" ? "active" : ""}`}
+              >
+                System Users
+              </NavLink>
+            </>
           )}
         </nav>
       </aside>

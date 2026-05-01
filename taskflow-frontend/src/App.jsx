@@ -3,6 +3,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import AdminPage from "./pages/AdminPage";
+import SystemUsersPage from "./pages/SystemUsersPage";
 import RoleRoute from "./components/RoleRoute";
 import PrivateRoute from "./components/PrivateRoute";
 import ProjectsPage from "./pages/ProjectsPage";
@@ -45,6 +46,15 @@ function App() {
         <Route path="/projects/:id" element={<ProjectDetail />} />
         <Route path="/tasks/:taskId/attachments" element={<TaskAttachments />} />
         <Route path="/tasks/:taskId" element={<TaskDetailPage />} />
+
+        <Route
+          path="/system-users"
+          element={
+            <RoleRoute allowedRoles={[0, "Admin"]}>
+              <SystemUsersPage />
+            </RoleRoute>
+          }
+        />
 
         <Route
           path="/projects/:id/stats"

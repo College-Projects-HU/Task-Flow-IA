@@ -155,4 +155,20 @@ export const markNotificationAsRead = async (notificationId) => {
   await api.patch(`/notifications/${notificationId}/read`);
 };
 
+// System Users Management (Admins)
+export const getSystemUsers = async () => {
+  const response = await api.get("/system-users");
+  return response.data;
+};
+
+export const updateSystemUserRole = async (id, role) => {
+  const response = await api.put(`/system-users/${id}/role`, { role });
+  return response.data;
+};
+
+export const deleteSystemUser = async (id) => {
+  const response = await api.delete(`/system-users/${id}`);
+  return response.data;
+};
+
 export default api;
