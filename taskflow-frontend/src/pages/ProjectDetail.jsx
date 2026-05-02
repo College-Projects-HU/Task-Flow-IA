@@ -279,15 +279,11 @@ const ProjectDetail = () => {
           {project.tasks && project.tasks.length > 0 ? (
             <div className="project-task-list">
               {project.tasks.map((task) => (
-                <article key={task.id} className="project-task-row">
+                <article key={task.id} className="project-task-row" onClick={() => setSelectedTaskDetailId(task.id)}>
                   <div className="project-task-main">
-                    <button
-                      type="button"
-                      className="project-task-title"
-                      onClick={() => setSelectedTaskDetailId(task.id)}
-                    >
+                    <h3 className="project-task-title">
                       {task.title}
-                    </button>
+                    </h3>
                     <p className="project-task-subtitle">
                       {task.description || "No task description provided."}
                     </p>
@@ -327,7 +323,7 @@ const ProjectDetail = () => {
                         <button
                           type="button"
                           className="task-action-btn"
-                          onClick={() => handleEditClick(task)}
+                          onClick={(e) => { e.stopPropagation(); handleEditClick(task); }}
                         >
                           Edit
                         </button>
@@ -335,7 +331,7 @@ const ProjectDetail = () => {
                         <button
                           type="button"
                           className="task-action-btn task-action-btn-danger"
-                          onClick={() => handleDeleteTask(task.id)}
+                          onClick={(e) => { e.stopPropagation(); handleDeleteTask(task.id); }}
                         >
                           Delete
                         </button>
@@ -344,14 +340,7 @@ const ProjectDetail = () => {
                     <button
                       type="button"
                       className="task-action-btn"
-                      onClick={() => setSelectedTaskDetailId(task.id)}
-                    >
-                      Open
-                    </button>
-                    <button
-                      type="button"
-                      className="task-action-btn"
-                      onClick={() => navigate(`/tasks/${task.id}/attachments`)}
+                      onClick={(e) => { e.stopPropagation(); navigate(`/tasks/${task.id}/attachments`); }}
                     >
                       Files
                     </button>
