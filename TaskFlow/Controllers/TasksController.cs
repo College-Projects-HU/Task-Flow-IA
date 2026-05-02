@@ -179,6 +179,12 @@ namespace TaskFlow.Controllers
                 }
             }
 
+            // Validation: task due date cannot be after project end date
+            if (dto.DueDate.HasValue && project.EndDate.HasValue && dto.DueDate.Value > project.EndDate.Value)
+            {
+                return BadRequest(new { message = "Task due date cannot be after project end date." });
+            }
+
             var task = new TaskItem
             {
                 Title = dto.Title,
@@ -258,6 +264,12 @@ namespace TaskFlow.Controllers
 
             if (dto.DueDate.HasValue)
             {
+                // Ensure due date does not exceed project end date
+                if (project.EndDate.HasValue && dto.DueDate.Value > project.EndDate.Value)
+                {
+                    return BadRequest(new { message = "Task due date cannot be after project end date." });
+                }
+
                 task.DueDate = dto.DueDate.Value;
             }
 

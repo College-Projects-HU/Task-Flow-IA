@@ -32,7 +32,8 @@ namespace TaskFlow.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId = int.TryParse(userIdValue, out var parsedUserId) ? parsedUserId : 0;
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
 
             var projects = _service.GetAll(userId, userRole ?? string.Empty);
@@ -82,6 +83,18 @@ namespace TaskFlow.Controllers
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
 
+            // Validation: start date must be in the future
+            if (dto.StartDate.HasValue && dto.StartDate.Value <= DateTime.UtcNow)
+            {
+                return BadRequest(new { message = "Start date must be in the future." });
+            }
+
+            // Validation: end date cannot be before start date
+            if (dto.EndDate.HasValue && dto.StartDate.HasValue && dto.EndDate.Value < dto.StartDate.Value)
+            {
+                return BadRequest(new { message = "End date cannot be before start date." });
+            }
+
             var project = new Project
             {
                 Name = dto.Name,
@@ -106,6 +119,18 @@ namespace TaskFlow.Controllers
 
             if (project == null)
                 return NotFound();
+
+            // Validation: start date must be in the future
+            if (dto.StartDate.HasValue && dto.StartDate.Value <= DateTime.UtcNow)
+            {
+                return BadRequest(new { message = "Start date must be in the future." });
+            }
+
+            // Validation: end date cannot be before start date
+            if (dto.EndDate.HasValue && dto.StartDate.HasValue && dto.EndDate.Value < dto.StartDate.Value)
+            {
+                return BadRequest(new { message = "End date cannot be before start date." });
+            }
 
             project.Name = dto.Name;
             project.Description = dto.Description ?? string.Empty;
