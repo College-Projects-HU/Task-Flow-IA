@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using TaskFlow.DTOs;
 using TaskFlow.Interfaces;
 
@@ -16,7 +16,7 @@ namespace TaskFlow.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterDto dto)
+        public async Task<IActionResult> Register([FromForm] RegisterDto dto)
         {
             var (success, message, userId) = await _authService.RegisterAsync(dto);
             if (!success) return BadRequest(new { message });

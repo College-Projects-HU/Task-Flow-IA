@@ -14,10 +14,12 @@ namespace TaskFlow.Controllers
     public class ProfileController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment _env;
 
-        public ProfileController(ApplicationDbContext context)
+        public ProfileController(ApplicationDbContext context, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env)
         {
             _context = context;
+            _env = env;
         }
 
         [HttpGet]
@@ -41,12 +43,13 @@ namespace TaskFlow.Controllers
                 user.FullName,
                 user.Email,
                 Role = user.Role.ToString(),
-                user.CreatedAt
+                user.CreatedAt,
+                user.ProfilePictureUrl
             });
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
+        public async Task<IActionResult> UpdateProfile([FromForm] UpdateProfileDto dto)
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdStr, out int userId))
@@ -75,6 +78,25 @@ namespace TaskFlow.Controllers
                 user.Email = dto.Email;
             }
 
+            if (dto.ProfilePicture != null)
+            {
+                var uploadsFolder = Path.Combine(_env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "uploads", "profiles");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var uniqueFileName = Guid.NewGuid().ToString() + "_" + dto.ProfilePicture.FileName;
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await dto.ProfilePicture.CopyToAsync(fileStream);
+                }
+
+                user.ProfilePictureUrl = $"/uploads/profiles/{uniqueFileName}";
+            }
+
             await _context.SaveChangesAsync();
 
             return Ok(new
@@ -86,7 +108,8 @@ namespace TaskFlow.Controllers
                     user.FullName,
                     user.Email,
                     Role = user.Role.ToString(),
-                    user.CreatedAt
+                    user.CreatedAt,
+                    user.ProfilePictureUrl
                 }
             });
         }
@@ -94,7 +117,8 @@ namespace TaskFlow.Controllers
 
     public class UpdateProfileDto
     {
-        public string FullName { get; set; }
-        public string Email { get; set; }
+        public string? FullName { get; set; }
+        public string? Email { get; set; }
+        public Microsoft.AspNetCore.Http.IFormFile? ProfilePicture { get; set; }
     }
 }

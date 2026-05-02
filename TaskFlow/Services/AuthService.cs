@@ -1,4 +1,4 @@
-﻿using BCrypt.Net;
+using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
 using TaskFlow.DTOs;
 using TaskFlow.Data;
@@ -16,11 +16,13 @@ namespace TaskFlow.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment _env;
 
-        public AuthService(ApplicationDbContext context, IConfiguration configuration)
+        public AuthService(ApplicationDbContext context, IConfiguration configuration, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env)
         {
             _context = context;
             _configuration = configuration;
+            _env = env;
         }
 
         private string GenerateJwtToken(User user)
@@ -29,13 +31,18 @@ namespace TaskFlow.Services
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             // بنضيف معلومات اليوزر جوه الـ Token (زي الـ ID والـ Role)
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
                 new Claim(ClaimTypes.Role, user.Role.ToString()),
                 new Claim("FullName", user.FullName ?? string.Empty)
             };
+
+            if (!string.IsNullOrEmpty(user.ProfilePictureUrl))
+            {
+                claims.Add(new Claim("ProfilePictureUrl", user.ProfilePictureUrl));
+            }
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
@@ -60,6 +67,26 @@ namespace TaskFlow.Services
             string salt = BCrypt.Net.BCrypt.GenerateSalt();
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password, salt);
 
+            string? profilePictureUrl = null;
+            if (dto.ProfilePicture != null)
+            {
+                var uploadsFolder = Path.Combine(_env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "uploads", "profiles");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var uniqueFileName = Guid.NewGuid().ToString() + "_" + dto.ProfilePicture.FileName;
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await dto.ProfilePicture.CopyToAsync(fileStream);
+                }
+
+                profilePictureUrl = $"/uploads/profiles/{uniqueFileName}";
+            }
+
             // 3. إنشاء اليوزر
             var user = new User
             {
@@ -68,7 +95,8 @@ namespace TaskFlow.Services
                 PasswordHash = passwordHash,
                 Role = dto.Role,
                 CreatedAt = DateTime.UtcNow,
-                IsApproved = (dto.Role == Role.Member || dto.Role == Role.Admin) ? true : false // الميمبر والأدمن بياخدوا اوتو ابروف، المانجر بيحتاج ادمن بعمله ابروف
+                IsApproved = (dto.Role == Role.Member || dto.Role == Role.Admin) ? true : false, // الميمبر والأدمن بياخدوا اوتو ابروف، المانجر بيحتاج ادمن بعمله ابروف
+                ProfilePictureUrl = profilePictureUrl
             };
 
             _context.Users.Add(user);

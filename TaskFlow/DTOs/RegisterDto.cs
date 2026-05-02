@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using TaskFlow.Models;
 
 namespace TaskFlow.DTOs
@@ -16,5 +16,7 @@ namespace TaskFlow.DTOs
 
         [Required]
         public Role Role { get; set; }
+
+        public Microsoft.AspNetCore.Http.IFormFile? ProfilePicture { get; set; }
     }
 }

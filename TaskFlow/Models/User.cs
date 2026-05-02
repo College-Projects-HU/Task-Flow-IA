@@ -17,5 +17,6 @@ namespace TaskFlow.Models
         public bool IsApproved { get; set; }
         public bool IsRejected { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string? ProfilePictureUrl { get; set; }
     }
 }

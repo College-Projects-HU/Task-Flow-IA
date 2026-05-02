@@ -1,14 +1,27 @@
-import { useContext } from "react";
+import { useState, useContext, useRef, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import NotificationBell from "./NotificationBell";
 import useNotifications from "../hooks/useNotifications";
+import { API_ORIGIN } from "../services/api";
 import "../pages/Dashboard.css";
 
 function DashboardLayout({ title, subtitle, activeItem, children }) {
   const { user, token, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const { notifications, markAsRead } = useNotifications(token);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -76,21 +89,33 @@ function DashboardLayout({ title, subtitle, activeItem, children }) {
               notifications={notifications}
               onNotificationRead={markAsRead}
             />
-            <div className="profile-dropdown-container">
-              <div className="profile-icon-btn">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="12" cy="7" r="4"></circle>
-                </svg>
+            <div className="profile-dropdown-container" ref={profileRef}>
+              <div 
+                className="profile-icon-btn" 
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                style={{
+                  backgroundImage: user?.profilePictureUrl ? `url(${API_ORIGIN}${user.profilePictureUrl})` : 'none',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
+                }}
+              >
+                {!user?.profilePictureUrl && (
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                )}
               </div>
-              <div className="profile-dropdown-menu">
-                <NavLink to="/profile" className="profile-dropdown-item">
-                  Profile
-                </NavLink>
-                <button className="profile-dropdown-item logout" onClick={handleLogout}>
-                  Logout
-                </button>
-              </div>
+              {isProfileOpen && (
+                <div className="profile-dropdown-menu show">
+                  <NavLink to="/profile" className="profile-dropdown-item" onClick={() => setIsProfileOpen(false)}>
+                    Profile
+                  </NavLink>
+                  <button className="profile-dropdown-item logout" onClick={handleLogout}>
+                    Logout
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>

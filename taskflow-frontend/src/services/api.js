@@ -183,7 +183,9 @@ export const getProfile = async () => {
 };
 
 export const updateProfile = async (data) => {
-  const res = await api.put("/profile", data);
+  const res = await api.put("/profile", data, {
+    headers: { "Content-Type": "multipart/form-data" }
+  });
   return res.data;
 };
 

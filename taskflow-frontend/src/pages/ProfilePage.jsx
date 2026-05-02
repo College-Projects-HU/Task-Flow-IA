@@ -11,11 +11,13 @@ function ProfilePage() {
     email: "",
     role: "",
     createdAt: "",
+    profilePictureUrl: null,
   });
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
+    profilePicture: null,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -34,10 +36,12 @@ function ProfilePage() {
         email: data.email,
         role: data.role,
         createdAt: new Date(data.createdAt).toLocaleDateString(),
+        profilePictureUrl: data.profilePictureUrl,
       });
       setFormData({
         fullName: data.fullName,
         email: data.email,
+        profilePicture: null,
       });
       setError(null);
     } catch (err) {
@@ -48,10 +52,10 @@ function ProfilePage() {
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, files } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === "file" ? files[0] : value,
     }));
   };
 
@@ -62,10 +66,14 @@ function ProfilePage() {
       setError(null);
       setSuccessMsg("");
       
-      const updatedUser = await updateProfile({
-        fullName: formData.fullName,
-        email: formData.email,
-      });
+      const submitData = new FormData();
+      submitData.append("fullName", formData.fullName);
+      submitData.append("email", formData.email);
+      if (formData.profilePicture) {
+        submitData.append("profilePicture", formData.profilePicture);
+      }
+
+      const updatedUser = await updateProfile(submitData);
 
       setProfileData((prev) => ({
         ...prev,
@@ -85,6 +93,7 @@ function ProfilePage() {
     setFormData({
       fullName: profileData.fullName,
       email: profileData.email,
+      profilePicture: null,
     });
     setIsEditing(false);
     setError(null);
@@ -96,15 +105,44 @@ function ProfilePage() {
       <div className="profile-page-container">
         <div className="profile-card">
           <div className="profile-header">
-            <div className="profile-avatar">
-              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
+            <div 
+              className="profile-avatar"
+              style={{
+                backgroundImage: profileData.profilePictureUrl ? `url(http://localhost:5218${profileData.profilePictureUrl})` : 'none',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }}
+            >
+              {!profileData.profilePictureUrl && (
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              )}
             </div>
             <div className="profile-title">
               <h3>{profileData.fullName}</h3>
               <p className="profile-role">{profileData.role}</p>
+              {isEditing && (
+                <div className="profile-picture-upload mt-2">
+                  <label htmlFor="profilePicture" className="upload-label" style={{ fontSize: '0.85rem', color: '#4b5563', cursor: 'pointer', textDecoration: 'underline' }}>
+                    Change Picture
+                  </label>
+                  <input
+                    type="file"
+                    id="profilePicture"
+                    name="profilePicture"
+                    onChange={handleInputChange}
+                    style={{ display: 'none' }}
+                    accept="image/*"
+                  />
+                  {formData.profilePicture && (
+                    <span style={{ fontSize: '0.8rem', marginLeft: '0.5rem', color: '#10b981' }}>
+                      {formData.profilePicture.name} selected
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

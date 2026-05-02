@@ -88,11 +88,18 @@ function Register() {
     setErrors({});
 
     try {
-      const response = await api.post("/Auth/register", {
-        fullName: `${formData.firstName} ${formData.lastName}`,
-        email: formData.email,
-        password: formData.password,
-        role: parseInt(formData.role, 10),
+      const submitData = new FormData();
+      submitData.append("fullName", `${formData.firstName} ${formData.lastName}`);
+      submitData.append("email", formData.email);
+      submitData.append("password", formData.password);
+      submitData.append("role", parseInt(formData.role, 10));
+      
+      if (formData.profilePicture) {
+        submitData.append("profilePicture", formData.profilePicture);
+      }
+
+      const response = await api.post("/Auth/register", submitData, {
+        headers: { "Content-Type": "multipart/form-data" }
       });
 
       alert(response.data.message);

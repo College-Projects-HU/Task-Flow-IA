@@ -51,11 +51,14 @@ export const AuthProvider = ({ children }) => {
         payload.name ||
         "";
 
+      const profilePictureUrl = payload.ProfilePictureUrl || null;
+
       setUser({
         id: Number(id),
         email,
         role,
         name: name.toLowerCase().trim(), // 🔥 normalize
+        profilePictureUrl,
       });
     } catch (error) {
       console.error("Invalid token", error);

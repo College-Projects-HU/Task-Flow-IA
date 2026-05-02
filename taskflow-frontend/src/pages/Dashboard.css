@@ -476,7 +476,7 @@
   overflow: hidden;
 }
 
-.profile-dropdown-container:hover .profile-dropdown-menu {
+.profile-dropdown-menu.show {
   display: block;
 }
 
