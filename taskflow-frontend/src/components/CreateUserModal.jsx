@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../services/api";
 
 export default function CreateUserModal({ show, handleClose, onSuccess }) {
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     firstName: "",
     lastName: "",
     email: "",
@@ -10,10 +10,20 @@ export default function CreateUserModal({ show, handleClose, onSuccess }) {
     confirmPassword: "",
     role: 2, // 1 for PM, 2 for Member
     approvePM: false, // For admin to auto-approve PM
-  });
+  };
+
+  const [formData, setFormData] = useState(initialFormData);
   
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!show) {
+      setFormData(initialFormData);
+      setErrors({});
+      setIsLoading(false);
+    }
+  }, [show]);
 
   if (!show) return null;
 
@@ -62,12 +72,14 @@ export default function CreateUserModal({ show, handleClose, onSuccess }) {
     
     setIsLoading(true);
     try {
-      // 1. Create the user
-      const response = await api.post("/Auth/register", {
-        fullName: `${formData.firstName} ${formData.lastName}`,
-        email: formData.email,
-        password: formData.password,
-        role: parseInt(formData.role, 10),
+      const submitData = new FormData();
+      submitData.append("fullName", `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim());
+      submitData.append("email", formData.email.trim());
+      submitData.append("password", formData.password);
+      submitData.append("role", String(parseInt(formData.role, 10)));
+
+      const response = await api.post("/Auth/register", submitData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       const { userId } = response.data;
@@ -80,17 +92,6 @@ export default function CreateUserModal({ show, handleClose, onSuccess }) {
 
       onSuccess();
       handleClose();
-      // Reset form state for next time
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        role: 2,
-        approvePM: false,
-      });
-      setErrors({});
     } catch (err) {
       const errMsg = err.response?.data?.message || err.response?.data || "Failed to create user.";
       setErrors({ submit: errMsg });
