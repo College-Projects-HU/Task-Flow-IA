@@ -1,7 +1,21 @@
 import { useState, useEffect } from "react";
 import { getProjectMembers, createTask } from "../services/api";
 
-const CreateTaskModal = ({ show, handleClose, projects = [], projectId, onTaskCreated }) => {
+const normalizeDateOnly = (value) => {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+const CreateTaskModal = ({ show, handleClose, projects = [], projectId, projectEndDate, onTaskCreated }) => {
   const [form, setForm] = useState({
     projectId: projectId || "",
     title: "",
@@ -45,6 +59,11 @@ const CreateTaskModal = ({ show, handleClose, projects = [], projectId, onTaskCr
     }
   }, [show]);
 
+  const selectedProject = projects.find(
+    (project) => String(project.id) === String(form.projectId),
+  );
+  const selectedProjectEndDate = projectEndDate ?? selectedProject?.endDate ?? null;
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({
@@ -77,12 +96,17 @@ const CreateTaskModal = ({ show, handleClose, projects = [], projectId, onTaskCr
     }
 
     if (form.dueDate) {
-      const selectedDate = new Date(form.dueDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const selectedDate = normalizeDateOnly(form.dueDate);
+      const today = normalizeDateOnly(new Date());
       
       if (selectedDate <= today) {
         setError("Due Date must be in the future.");
+        return;
+      }
+
+      const projectEnd = normalizeDateOnly(selectedProjectEndDate);
+      if (projectEnd && selectedDate > projectEnd) {
+        setError("Due date must be before project ending.");
         return;
       }
     }
@@ -105,7 +129,7 @@ const CreateTaskModal = ({ show, handleClose, projects = [], projectId, onTaskCr
       resetForm();
     } catch (err) {
       console.error(err);
-      setError("Failed to create task. Please try again.");
+      setError(err?.response?.data?.message || "Failed to create task. Please try again.");
     } finally {
       setSubmitting(false);
     }

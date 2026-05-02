@@ -23,6 +23,7 @@ namespace TaskFlow.Controllers
             _context = context;
         }
         [HttpGet("{id}/stats")]
+        [Authorize(Roles = "ProjectManager,Admin")]
         public async Task<IActionResult> GetStats(int id)
         {
             var stats = await _service.GetProjectStats(id);

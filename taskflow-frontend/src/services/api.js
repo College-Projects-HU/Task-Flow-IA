@@ -29,6 +29,8 @@ export const getProjects = async () => {
     id: p.id,
     name: p.name,
     description: p.description,
+    startDate: p.startDate,
+    endDate: p.endDate,
     taskCount: p.tasks.length,
     createdAt: "2026-04-01",
   }));
@@ -72,6 +74,8 @@ export const getProjectById = async (id) => {
     id: p.id,
     name: p.name,
     description: p.description,
+    startDate: p.startDate,
+    endDate: p.endDate,
     taskCount: p.tasks?.length || 0,
     createdAt: p.createdAt || "2026-04-01",
     tasks: p.tasks || [],

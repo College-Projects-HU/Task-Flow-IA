@@ -60,7 +60,7 @@ function App() {
         <Route
           path="/projects/:id/stats"
           element={
-            <RoleRoute allowedRoles={["ProjectManager"]}>
+            <RoleRoute allowedRoles={["ProjectManager", "Admin", 0]}>
               <StatsPage />
             </RoleRoute>
           }

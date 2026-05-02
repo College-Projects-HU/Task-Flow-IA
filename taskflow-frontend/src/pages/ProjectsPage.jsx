@@ -57,8 +57,8 @@ const ProjectsPage = () => {
             taskCount,
             completedTasks,
             inProgressTasks,
-            startDate,
-            endDate,
+            startDate: project.startDate || startDate,
+            endDate: project.endDate || endDate,
             progressLabel,
           };
         });
@@ -83,14 +83,14 @@ const ProjectsPage = () => {
           taskCount: 0,
           completedTasks: 0,
           inProgressTasks: 0,
-          startDate: null,
-          endDate: null,
           progressLabel: "0%",
         },
         ...prev,
       ]);
+      return true;
     } catch (err) {
       console.log("Error creating project:", err);
+      throw err;
     }
   };
 

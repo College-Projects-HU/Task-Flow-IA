@@ -61,6 +61,13 @@ const ProjectDetail = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [selectedTaskDetailId, setSelectedTaskDetailId] = useState(null);
+  const [activeDropdown, setActiveDropdown] = useState(null);
+
+  useEffect(() => {
+    const handleClickOutside = () => setActiveDropdown(null);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
   const normalizeTask = (task) => ({
     id: task?.id ?? task?.Id,
@@ -109,8 +116,8 @@ const ProjectDetail = () => {
         taskCount: normalizedTasks.length,
         completedTasks,
         inProgressTasks,
-        startDate,
-        endDate,
+        startDate: projectData.startDate || startDate,
+        endDate: projectData.endDate || endDate,
       });
     } catch (err) {
       console.log(err);
@@ -217,32 +224,52 @@ const ProjectDetail = () => {
             </p>
           </div>
 
-          <div className="project-detail-actions">
-            <button
-              type="button"
-              className="dashboard-link-btn"
-              onClick={() => navigate(`/projects/${id}/stats`)}
-            >
-              View Statistics
-            </button>
-
+          <div className="project-detail-actions" style={{ alignItems: 'center' }}>
             {user?.role === "ProjectManager" && (
-              <div className="project-manager-actions">
+              <button
+                type="button"
+                className="create-btn"
+                onClick={() => setShowCreateModal(true)}
+              >
+                Add Task
+              </button>
+            )}
+
+            {(user?.role === "ProjectManager" || user?.role === "Admin" || user?.role === 0) && (
+              <div className="project-dropdown-container" style={{ position: "relative" }}>
                 <button
                   type="button"
-                  className="create-btn"
-                  onClick={() => setShowCreateModal(true)}
+                  className="task-action-btn icon-btn"
+                  style={{ padding: '0.85rem', display: 'flex', alignItems: 'center' }}
+                  onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'project-actions' ? null : 'project-actions'); }}
                 >
-                  Add Task
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="2"></circle>
+                    <circle cx="12" cy="5" r="2"></circle>
+                    <circle cx="12" cy="19" r="2"></circle>
+                  </svg>
                 </button>
 
-                <button
-                  type="button"
-                  className="delete-btn"
-                  onClick={handleDeleteProject}
-                >
-                  Delete Project
-                </button>
+                {activeDropdown === 'project-actions' && (
+                  <div className="task-dropdown-menu">
+                    <button
+                      type="button"
+                      className="dropdown-item"
+                      onClick={(e) => { e.stopPropagation(); setActiveDropdown(null); navigate(`/projects/${id}/stats`); }}
+                    >
+                      View Statistics
+                    </button>
+                    {user?.role === "ProjectManager" && (
+                      <button
+                        type="button"
+                        className="dropdown-item danger"
+                        onClick={(e) => { e.stopPropagation(); setActiveDropdown(null); handleDeleteProject(); }}
+                      >
+                        Delete Project
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -318,25 +345,6 @@ const ProjectDetail = () => {
                   </div>
 
                   <div className="project-task-actions">
-                    {user?.role === "ProjectManager" && (
-                      <>
-                        <button
-                          type="button"
-                          className="task-action-btn"
-                          onClick={(e) => { e.stopPropagation(); handleEditClick(task); }}
-                        >
-                          Edit
-                        </button>
-
-                        <button
-                          type="button"
-                          className="task-action-btn task-action-btn-danger"
-                          onClick={(e) => { e.stopPropagation(); handleDeleteTask(task.id); }}
-                        >
-                          Delete
-                        </button>
-                      </>
-                    )}
                     <button
                       type="button"
                       className="task-action-btn"
@@ -344,6 +352,41 @@ const ProjectDetail = () => {
                     >
                       Files
                     </button>
+                    {user?.role === "ProjectManager" && (
+                      <div className="task-dropdown-container" style={{ position: "relative" }}>
+                        <button
+                          type="button"
+                          className="task-action-btn icon-btn"
+                          style={{ padding: '0.55rem', display: 'flex', alignItems: 'center' }}
+                          onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === task.id ? null : task.id); }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="2"></circle>
+                            <circle cx="12" cy="5" r="2"></circle>
+                            <circle cx="12" cy="19" r="2"></circle>
+                          </svg>
+                        </button>
+
+                        {activeDropdown === task.id && (
+                          <div className="task-dropdown-menu">
+                            <button
+                              type="button"
+                              className="dropdown-item"
+                              onClick={(e) => { e.stopPropagation(); setActiveDropdown(null); handleEditClick(task); }}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="dropdown-item danger"
+                              onClick={(e) => { e.stopPropagation(); setActiveDropdown(null); handleDeleteTask(task.id); }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </article>
               ))}
@@ -360,6 +403,7 @@ const ProjectDetail = () => {
         show={showCreateModal}
         handleClose={() => setShowCreateModal(false)}
         projectId={id}
+        projectEndDate={project.endDate}
         onTaskCreated={fetchProject}
       />
 

@@ -7,6 +7,8 @@ const CreateProjectModal = ({ show, handleClose, onCreate }) => {
     startDate: "",
     endDate: "",
   });
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setForm({
@@ -15,8 +17,16 @@ const CreateProjectModal = ({ show, handleClose, onCreate }) => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
+    if (form.startDate && form.endDate) {
+      if (new Date(form.startDate) > new Date(form.endDate)) {
+        setError("Start date cannot be after the end date.");
+        return;
+      }
+    }
 
     const newProject = {
       id: Date.now(),
@@ -25,10 +35,17 @@ const CreateProjectModal = ({ show, handleClose, onCreate }) => {
       createdAt: new Date().toISOString().split("T")[0],
     };
 
-    onCreate(newProject);
-    handleClose();
-
-    setForm({ name: "", description: "", startDate: "", endDate: "" });
+    try {
+      setIsSubmitting(true);
+      await onCreate(newProject);
+      setForm({ name: "", description: "", startDate: "", endDate: "" });
+      handleClose();
+    } catch (err) {
+      const errMsg = err.response?.data?.message || "Failed to create project. Please check your inputs.";
+      setError(errMsg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!show) return null;
@@ -52,8 +69,18 @@ const CreateProjectModal = ({ show, handleClose, onCreate }) => {
                 type="button"
                 className="btn-close btn-close-white"
                 onClick={handleClose}
+                disabled={isSubmitting}
               ></button>
             </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="px-3">
+                <div className="alert alert-danger py-2 mb-0" role="alert">
+                  {error}
+                </div>
+              </div>
+            )}
 
             {/* Form */}
             <form onSubmit={handleSubmit}>
@@ -117,12 +144,13 @@ const CreateProjectModal = ({ show, handleClose, onCreate }) => {
                   type="button"
                   className="btn btn-outline-light"
                   onClick={handleClose}
+                  disabled={isSubmitting}
                 >
                   Cancel
                 </button>
 
-                <button type="submit" className="btn btn-light fw-semibold">
-                  Create Project
+                <button type="submit" className="btn btn-light fw-semibold" disabled={isSubmitting}>
+                  {isSubmitting ? "Creating..." : "Create Project"}
                 </button>
               </div>
             </form>
