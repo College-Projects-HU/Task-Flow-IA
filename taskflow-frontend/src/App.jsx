@@ -13,6 +13,7 @@ import StatsPage from "./pages/StatsPage";
 import Dashboard from "./pages/Dashboard";
 import TaskBoard from "./pages/taskboard";
 import TaskAttachments from "./pages/TaskAttachments";
+import ProfilePage from "./pages/ProfilePage";
 import "./App.css";
 
 function App() {
@@ -62,6 +63,15 @@ function App() {
             <RoleRoute allowedRoles={["ProjectManager"]}>
               <StatsPage />
             </RoleRoute>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <ProfilePage />
+            </PrivateRoute>
           }
         />
       </Routes>

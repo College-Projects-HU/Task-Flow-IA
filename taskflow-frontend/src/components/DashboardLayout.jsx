@@ -76,9 +76,22 @@ function DashboardLayout({ title, subtitle, activeItem, children }) {
               notifications={notifications}
               onNotificationRead={markAsRead}
             />
-            <button className="dashboard-logout" onClick={handleLogout}>
-              Logout
-            </button>
+            <div className="profile-dropdown-container">
+              <div className="profile-icon-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </div>
+              <div className="profile-dropdown-menu">
+                <NavLink to="/profile" className="profile-dropdown-item">
+                  Profile
+                </NavLink>
+                <button className="profile-dropdown-item logout" onClick={handleLogout}>
+                  Logout
+                </button>
+              </div>
+            </div>
           </div>
         </header>
 
