@@ -78,7 +78,7 @@ namespace TaskFlow.Controllers
 
         [HttpPost]
         [Authorize(Roles = "ProjectManager")]
-        public IActionResult Create(CreateProjectDto dto)
+        public IActionResult Create([FromBody] CreateProjectDto dto)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
 
@@ -97,7 +97,7 @@ namespace TaskFlow.Controllers
         }
         [HttpPut("{id}")]
         [Authorize(Roles = "ProjectManager")]
-        public IActionResult Update(int id, CreateProjectDto dto)
+        public IActionResult Update(int id, [FromBody] CreateProjectDto dto)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
             var role = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
@@ -119,7 +119,7 @@ namespace TaskFlow.Controllers
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "ProjectManager")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
             var role = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
@@ -129,9 +129,9 @@ namespace TaskFlow.Controllers
             if (project == null)
                 return NotFound();
 
-            _service.Delete(project);
+            await _service.Delete(project);
 
-            return Ok("Deleted");
+            return NoContent();
         }
     }
 

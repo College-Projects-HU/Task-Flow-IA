@@ -65,10 +65,28 @@ namespace TaskFlow.Services
             _context.SaveChanges();
         }
 
-        public void Delete(Project project)
+        public async Task Delete(Project project)
         {
-            project.IsDeleted = true;
-            _context.SaveChanges();
+            var attachmentPaths = await _context.Attachments
+                .Where(a => _context.Tasks.Any(t => t.Id == a.TaskId && t.ProjectId == project.Id))
+                .Select(a => a.FilePath)
+                .ToListAsync();
+
+            foreach (var attachmentPath in attachmentPaths)
+            {
+                var fullPath = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot",
+                    attachmentPath.TrimStart('/'));
+
+                if (File.Exists(fullPath))
+                {
+                    File.Delete(fullPath);
+                }
+            }
+
+            _context.Projects.Remove(project);
+            await _context.SaveChangesAsync();
         }
         public async Task<StatsDto> GetProjectStats(int projectId)
         {

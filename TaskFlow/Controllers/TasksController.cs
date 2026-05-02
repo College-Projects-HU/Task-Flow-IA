@@ -162,7 +162,7 @@ namespace TaskFlow.Controllers
 
         [HttpPost("projects/{projectId:int}/tasks")]
         [Authorize(Roles = "ProjectManager")]
-        public async Task<ActionResult<TaskResponseDto>> CreateTask(int projectId, TaskCreateRequestDto dto)
+        public async Task<ActionResult<TaskResponseDto>> CreateTask(int projectId, [FromBody] TaskCreateRequestDto dto)
         {
             var project = await GetOwnedProjectAsync(projectId);
             if (project == null)
@@ -214,7 +214,7 @@ namespace TaskFlow.Controllers
 
         [HttpPut("tasks/{id:int}")]
         [Authorize(Roles = "ProjectManager")]
-        public async Task<ActionResult<TaskResponseDto>> UpdateTask(int id, TaskUpdateRequestDto dto)
+        public async Task<ActionResult<TaskResponseDto>> UpdateTask(int id, [FromBody] TaskUpdateRequestDto dto)
         {
             var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
             if (task == null)

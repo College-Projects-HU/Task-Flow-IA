@@ -56,6 +56,12 @@ export const createProject = async (data) => {
   };
 };
 
+// 🔹 DELETE project
+export const deleteProject = async (projectId) => {
+  const res = await api.delete(`/projects/${projectId}`);
+  return res.data;
+};
+
 // 🔹 GET by id
 export const getProjectById = async (id) => {
   const res = await api.get(`/projects/${id}`);
@@ -99,6 +105,12 @@ export const createTask = async (projectId, taskData) => {
 // 🔹 UPDATE task
 export const updateTask = async (taskId, taskData) => {
   const res = await api.put(`/tasks/${taskId}`, taskData);
+  return res.data;
+};
+
+// 🔹 DELETE task
+export const deleteTask = async (taskId) => {
+  const res = await api.delete(`/tasks/${taskId}`);
   return res.data;
 };
 

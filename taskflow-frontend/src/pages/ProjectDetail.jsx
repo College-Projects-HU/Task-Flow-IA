@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState, useContext } from "react";
-import { getProjectById, getProjectTasks } from "../services/api";
+import { deleteProject, deleteTask, getProjectById, getProjectTasks } from "../services/api";
 import { AuthContext } from "../context/AuthContext";
 import CreateTaskModal from "../components/CreateTaskModal";
 import EditTaskModal from "../components/EditTaskModal";
@@ -128,6 +128,42 @@ const ProjectDetail = () => {
     setShowEditModal(true);
   };
 
+  const handleDeleteTask = async (taskId) => {
+    const confirmed = window.confirm(
+      "Delete this task and all of its comments and attachments? This cannot be undone.",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await deleteTask(taskId);
+      await fetchProject();
+    } catch (err) {
+      console.error(err);
+      window.alert("Failed to delete the task. Please try again.");
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    const confirmed = window.confirm(
+      "Delete this project and all related tasks, comments, and attachments? This cannot be undone.",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await deleteProject(id);
+      navigate("/projects");
+    } catch (err) {
+      console.error(err);
+      window.alert("Failed to delete the project. Please try again.");
+    }
+  };
+
   if (loading) {
     return (
       <DashboardLayout title="Project" activeItem="projects">
@@ -191,12 +227,23 @@ const ProjectDetail = () => {
             </button>
 
             {user?.role === "ProjectManager" && (
-              <button
-                className="create-btn"
-                onClick={() => setShowCreateModal(true)}
-              >
-                Add Task
-              </button>
+              <div className="project-manager-actions">
+                <button
+                  type="button"
+                  className="create-btn"
+                  onClick={() => setShowCreateModal(true)}
+                >
+                  Add Task
+                </button>
+
+                <button
+                  type="button"
+                  className="delete-btn"
+                  onClick={handleDeleteProject}
+                >
+                  Delete Project
+                </button>
+              </div>
             )}
           </div>
         </section>
@@ -276,13 +323,23 @@ const ProjectDetail = () => {
 
                   <div className="project-task-actions">
                     {user?.role === "ProjectManager" && (
-                      <button
-                        type="button"
-                        className="task-action-btn"
-                        onClick={() => handleEditClick(task)}
-                      >
-                        Edit
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          className="task-action-btn"
+                          onClick={() => handleEditClick(task)}
+                        >
+                          Edit
+                        </button>
+
+                        <button
+                          type="button"
+                          className="task-action-btn task-action-btn-danger"
+                          onClick={() => handleDeleteTask(task.id)}
+                        >
+                          Delete
+                        </button>
+                      </>
                     )}
                     <button
                       type="button"
