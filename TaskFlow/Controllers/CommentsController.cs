@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -29,6 +29,7 @@ namespace TaskFlow.Controllers
                 Id = c.Id,
                 Content = c.Content,
                 AuthorName = c.User.FullName,
+                AuthorId = c.UserId,
                 CreatedAt = c.CreatedAt
             });
 

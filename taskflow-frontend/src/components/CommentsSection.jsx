@@ -14,10 +14,8 @@ function CommentsSection({ taskId }) {
   const bottomRef = useRef(null);
   const { user } = useContext(AuthContext);
 
-  const normalize = (str) => str?.toLowerCase().trim();
-
-  const isOwner = (authorName) => {
-    return normalize(authorName)?.includes(normalize(user?.name));
+  const canDelete = (comment) => {
+    return comment.authorId === user?.id || user?.role === 'Admin' || user?.role === 'ProjectManager';
   };
 
   const loadComments = async () => {
@@ -100,7 +98,7 @@ function CommentsSection({ taskId }) {
                     </small>
                   </div>
 
-                  {isOwner(c.authorName) && (
+                  {canDelete(c) && (
                     <button
                       type="button"
                       className="taskdetail-comment-delete"

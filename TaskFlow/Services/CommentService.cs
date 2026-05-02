@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System;
 using TaskFlow.Data;
 using TaskFlow.Models;
@@ -41,8 +41,15 @@ namespace TaskFlow.Services
         public async Task<bool> DeleteComment(int commentId, int userId)
         {
             var comment = await _context.Comments.FindAsync(commentId);
+            var user = await _context.Users.FindAsync(userId);
 
-            if (comment == null || comment.UserId != userId)
+            if (comment == null || user == null)
+                return false;
+
+            bool isOwner = comment.UserId == userId;
+            bool isAdminOrPM = user.Role == Role.Admin || user.Role == Role.ProjectManager;
+
+            if (!isOwner && !isAdminOrPM)
                 return false;
 
             _context.Comments.Remove(comment);
