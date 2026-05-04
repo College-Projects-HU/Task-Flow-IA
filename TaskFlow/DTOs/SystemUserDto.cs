@@ -12,5 +12,8 @@ namespace TaskFlow.DTOs
         public DateTime CreatedAt { get; set; }
         public bool IsApproved { get; set; }
         public bool IsRejected { get; set; }
+        public bool CanInteractWithTasks { get; set; }
+        public bool CanComment { get; set; }
+        public bool CanAttachFiles { get; set; }
     }
 }

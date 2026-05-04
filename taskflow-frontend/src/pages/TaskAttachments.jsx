@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useContext } from "react";
 import {
   uploadAttachment,
   getAttachments,
@@ -7,6 +7,7 @@ import {
   deleteAttachment,
 } from "../services/api";
 import DashboardLayout from "../components/DashboardLayout";
+import { AuthContext } from "../context/AuthContext";
 import "./ProjectsPage.css";
 
 const TaskAttachments = () => {
@@ -19,6 +20,8 @@ const TaskAttachments = () => {
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(true);
   const fileInputRef = useRef(null);
+  const { user } = useContext(AuthContext);
+  const canAttachFiles = user?.canAttachFiles ?? true;
 
   const fetchData = async () => {
     try {
@@ -160,11 +163,12 @@ const TaskAttachments = () => {
               border: "1px solid #dfe9f7",
               marginBottom: "1.5rem",
               boxShadow: "0 4px 12px rgba(148, 163, 184, 0.05)",
+              opacity: canAttachFiles ? 1 : 0.55,
             }}
           >
             <input
               type="file"
-              className="form-control"
+              className="form-control permission-locked-control"
               ref={fileInputRef}
               style={{
                 flex: 1,
@@ -174,19 +178,20 @@ const TaskAttachments = () => {
                 color: "#1e293b",
                 backgroundColor: "#f8fafc",
               }}
+              disabled={!canAttachFiles}
               onChange={(e) => setSelectedFile(e.target.files[0])}
             />
             <button
               type="button"
-              className="create-btn"
+              className="create-btn permission-locked-control"
               onClick={handleUpload}
-              disabled={!selectedFile || progress > 0}
+              disabled={!canAttachFiles || !selectedFile || progress > 0}
               style={{
                 padding: "0.6rem 1.5rem",
                 minWidth: "140px",
-                opacity: !selectedFile || progress > 0 ? 0.7 : 1,
+                opacity: !canAttachFiles || !selectedFile || progress > 0 ? 0.7 : 1,
                 cursor:
-                  !selectedFile || progress > 0 ? "not-allowed" : "pointer",
+                  !canAttachFiles || !selectedFile || progress > 0 ? "not-allowed" : "pointer",
               }}
             >
               {progress > 0 ? `Uploading ${progress}%` : "Upload File"}

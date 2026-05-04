@@ -56,6 +56,7 @@ function TaskDetailPage({ taskId: propTaskId, onClose }) {
   const isModal = Boolean(propTaskId);
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
+  const canInteractWithTasks = user?.canInteractWithTasks ?? true;
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [statusUpdating, setStatusUpdating] = useState(false);
@@ -210,12 +211,14 @@ function TaskDetailPage({ taskId: propTaskId, onClose }) {
 
               <div className="taskdetail-meta-row">
                 <span>Status</span>
-                <div className="taskdetail-status-cell" style={{ position: "relative" }}>
-                  <div 
-                    className={`taskdetail-chip ${getStatusTone(task.status)}`}
-                    onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+                  <div className="taskdetail-status-cell" style={{ position: "relative" }}>
+                  <button 
+                    type="button"
+                    className={`taskdetail-chip ${getStatusTone(task.status)} permission-locked-control`}
+                    onClick={canInteractWithTasks ? () => setStatusDropdownOpen(!statusDropdownOpen) : undefined}
+                    disabled={!canInteractWithTasks}
                     style={{ 
-                      cursor: "pointer", 
+                      cursor: canInteractWithTasks ? "pointer" : "not-allowed", 
                       display: "flex", 
                       justifyContent: "space-between", 
                       alignItems: "center",
@@ -226,9 +229,9 @@ function TaskDetailPage({ taskId: propTaskId, onClose }) {
                   >
                     <span>{task.status === "InProgress" ? "In Progress" : task.status}</span>
                     <span style={{ fontSize: "0.75rem", opacity: 0.8 }}>▼</span>
-                  </div>
+                  </button>
 
-                  {statusDropdownOpen && (
+                  {statusDropdownOpen && canInteractWithTasks && (
                     <div style={{
                       position: "absolute",
                       top: "100%",
@@ -246,9 +249,10 @@ function TaskDetailPage({ taskId: propTaskId, onClose }) {
                         <div
                           key={s}
                           onClick={() => handleStatusChange(s)}
+                          aria-disabled={!canInteractWithTasks}
                           style={{
                             padding: "0.6rem 1rem",
-                            cursor: "pointer",
+                            cursor: canInteractWithTasks ? "pointer" : "not-allowed",
                             fontSize: "0.9rem",
                             fontWeight: "600",
                             color: task.status === s ? "#17325c" : "#64748b",
@@ -268,9 +272,9 @@ function TaskDetailPage({ taskId: propTaskId, onClose }) {
                   {nextStatus && (
                     <button
                       type="button"
-                      className="taskdetail-advance-btn"
+                      className="taskdetail-advance-btn permission-locked-control"
                       onClick={handleAdvanceStatus}
-                      disabled={statusUpdating}
+                      disabled={statusUpdating || !canInteractWithTasks}
                       title={`Move to ${nextStatus === "InProgress" ? "In Progress" : nextStatus}`}
                       style={{ 
                         padding: "0", 
@@ -283,7 +287,7 @@ function TaskDetailPage({ taskId: propTaskId, onClose }) {
                         border: "1px solid #d8e3f3",
                         background: "#fff",
                         color: "#64748b",
-                        cursor: statusUpdating ? "not-allowed" : "pointer"
+                        cursor: statusUpdating || !canInteractWithTasks ? "not-allowed" : "pointer"
                       }}
                     >
                       {statusUpdating ? "..." : "▶"}

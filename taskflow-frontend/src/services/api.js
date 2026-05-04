@@ -182,6 +182,11 @@ export const updateSystemUserRole = async (id, role) => {
   return response.data;
 };
 
+export const updateSystemUserPermissions = async (id, permissions) => {
+  const response = await api.put(`/system-users/${id}/permissions`, permissions);
+  return response.data;
+};
+
 export const deleteSystemUser = async (id) => {
   const response = await api.delete(`/system-users/${id}`);
   return response.data;

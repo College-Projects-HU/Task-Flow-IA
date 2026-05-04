@@ -164,6 +164,17 @@ namespace TaskFlow.Controllers
         [Authorize(Roles = "ProjectManager")]
         public async Task<ActionResult<TaskResponseDto>> CreateTask(int projectId, [FromBody] TaskCreateRequestDto dto)
         {
+            var currentUser = await GetCurrentUserAsync();
+            if (currentUser == null)
+            {
+                return Unauthorized(new { message = "Invalid user token." });
+            }
+
+            if (!currentUser.CanInteractWithTasks)
+            {
+                return StatusCode(403, new { message = "You do not have permission to interact with tasks." });
+            }
+
             var project = await GetOwnedProjectAsync(projectId);
             if (project == null)
             {
@@ -222,6 +233,17 @@ namespace TaskFlow.Controllers
         [Authorize(Roles = "ProjectManager")]
         public async Task<ActionResult<TaskResponseDto>> UpdateTask(int id, [FromBody] TaskUpdateRequestDto dto)
         {
+            var currentUser = await GetCurrentUserAsync();
+            if (currentUser == null)
+            {
+                return Unauthorized(new { message = "Invalid user token." });
+            }
+
+            if (!currentUser.CanInteractWithTasks)
+            {
+                return StatusCode(403, new { message = "You do not have permission to interact with tasks." });
+            }
+
             var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
             if (task == null)
             {
@@ -329,6 +351,17 @@ namespace TaskFlow.Controllers
         [Authorize(Roles = "ProjectManager")]
         public async Task<IActionResult> DeleteTask(int id)
         {
+            var currentUser = await GetCurrentUserAsync();
+            if (currentUser == null)
+            {
+                return Unauthorized(new { message = "Invalid user token." });
+            }
+
+            if (!currentUser.CanInteractWithTasks)
+            {
+                return StatusCode(403, new { message = "You do not have permission to interact with tasks." });
+            }
+
             var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
             if (task == null)
             {
@@ -355,6 +388,17 @@ namespace TaskFlow.Controllers
         {
             if (dto == null)
                 return BadRequest(new { message = "Invalid request." });
+
+            var currentUser = await GetCurrentUserAsync();
+            if (currentUser == null)
+            {
+                return Unauthorized(new { message = "Invalid user token." });
+            }
+
+            if (!currentUser.CanInteractWithTasks)
+            {
+                return StatusCode(403, new { message = "You do not have permission to interact with tasks." });
+            }
 
             // 🚨 مهم جدًا
             if (!Enum.IsDefined(typeof(TaskFlow.Models.TaskStatus), dto.Status))
@@ -388,6 +432,17 @@ namespace TaskFlow.Controllers
         {
             if (dto == null)
                 return BadRequest(new { message = "Invalid request body." });
+
+            var currentUser = await GetCurrentUserAsync();
+            if (currentUser == null)
+            {
+                return Unauthorized(new { message = "Invalid user token." });
+            }
+
+            if (!currentUser.CanInteractWithTasks)
+            {
+                return StatusCode(403, new { message = "You do not have permission to interact with tasks." });
+            }
 
             var task = await _context.Tasks
                 .FirstOrDefaultAsync(t => t.Id == id);
@@ -468,6 +523,17 @@ namespace TaskFlow.Controllers
 
             return await _context.Projects.FirstOrDefaultAsync(p =>
                 p.Id == projectId && p.ProjectManagerId == currentUserId.Value);
+        }
+
+        private async Task<User?> GetCurrentUserAsync()
+        {
+            var currentUserId = GetCurrentUserId();
+            if (!currentUserId.HasValue)
+            {
+                return null;
+            }
+
+            return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == currentUserId.Value);
         }
 
         private int? GetCurrentUserId()

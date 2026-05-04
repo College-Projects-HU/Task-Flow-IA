@@ -36,7 +36,10 @@ namespace TaskFlow.Services
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
                 new Claim(ClaimTypes.Role, user.Role.ToString()),
-                new Claim("FullName", user.FullName ?? string.Empty)
+                new Claim("FullName", user.FullName ?? string.Empty),
+                new Claim("CanInteractWithTasks", user.CanInteractWithTasks.ToString()),
+                new Claim("CanComment", user.CanComment.ToString()),
+                new Claim("CanAttachFiles", user.CanAttachFiles.ToString())
             };
 
             if (!string.IsNullOrEmpty(user.ProfilePictureUrl))
@@ -96,6 +99,9 @@ namespace TaskFlow.Services
                 Role = dto.Role,
                 CreatedAt = DateTime.UtcNow,
                 IsApproved = (dto.Role == Role.Member || dto.Role == Role.Admin) ? true : false, // الميمبر والأدمن بياخدوا اوتو ابروف، المانجر بيحتاج ادمن بعمله ابروف
+                CanInteractWithTasks = true,
+                CanComment = true,
+                CanAttachFiles = true,
                 ProfilePictureUrl = profilePictureUrl
             };
 

@@ -16,6 +16,9 @@ namespace TaskFlow.Models
         public Role Role { get; set; }
         public bool IsApproved { get; set; }
         public bool IsRejected { get; set; }
+        public bool CanInteractWithTasks { get; set; } = true;
+        public bool CanComment { get; set; } = true;
+        public bool CanAttachFiles { get; set; } = true;
         public DateTime CreatedAt { get; set; }
         public string? ProfilePictureUrl { get; set; }
     }

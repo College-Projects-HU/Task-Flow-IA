@@ -19,6 +19,18 @@ namespace TaskFlow.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<User>()
+                .Property(u => u.CanInteractWithTasks)
+                .HasDefaultValue(true);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.CanComment)
+                .HasDefaultValue(true);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.CanAttachFiles)
+                .HasDefaultValue(true);
+
             base.OnModelCreating(modelBuilder);
         }
     }

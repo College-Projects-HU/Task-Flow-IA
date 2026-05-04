@@ -11,6 +11,7 @@ import './TaskBoard.css';
 const TaskBoard = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+  const canInteractWithTasks = user?.canInteractWithTasks ?? true;
   
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
@@ -85,7 +86,7 @@ const TaskBoard = () => {
     setShowEditModal(true);
   };
 
-  const canCreateTask = user?.role === 'ProjectManager' || user?.role === 'Admin';
+  const canCreateTask = canInteractWithTasks && (user?.role === 'ProjectManager' || user?.role === 'Admin');
 
   const normalizeTask = (task) => ({
     id: task?.id ?? task?.Id,
@@ -202,7 +203,7 @@ const TaskBoard = () => {
           <span className="taskboard-column-badge">{columnTasks.length}</span>
         </div>
         <div className="taskboard-column-actions">
-          <button className="taskboard-column-btn" title="Options">
+          <button className="taskboard-column-btn permission-locked-control" title="Options" disabled={!canInteractWithTasks}>
             ⋯
           </button>
         </div>
@@ -285,6 +286,7 @@ const TaskBoard = () => {
                   fontWeight: '600',
                   cursor: 'pointer',
                   transition: '0.2s',
+                  opacity: canInteractWithTasks ? 1 : 0.55,
                 }}
                 onClick={() => {
                   setSelectedTask(null);
