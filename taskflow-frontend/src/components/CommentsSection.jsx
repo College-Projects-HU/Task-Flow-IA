@@ -13,6 +13,7 @@ function CommentsSection({ taskId }) {
 
   const bottomRef = useRef(null);
   const { user } = useContext(AuthContext);
+  const canComment = user?.canComment ?? true;
 
   const canDelete = (comment) => {
     return comment.authorId === user?.id || user?.role === 'Admin' || user?.role === 'ProjectManager';
@@ -116,16 +117,22 @@ function CommentsSection({ taskId }) {
             <div ref={bottomRef}></div>
           </div>
 
-          <div className="taskdetail-comment-composer">
+          <div className={`taskdetail-comment-composer ${!canComment ? "permission-locked-panel" : ""}`}>
             <textarea
-              className="taskdetail-comment-input"
+              className="taskdetail-comment-input permission-locked-control"
               rows="3"
               placeholder="Write a comment..."
               value={content}
+              disabled={!canComment}
               onChange={(e) => setContent(e.target.value)}
             />
 
-            <button type="button" className="taskdetail-comment-submit" onClick={handleAdd}>
+            <button
+              type="button"
+              className="taskdetail-comment-submit permission-locked-control"
+              onClick={handleAdd}
+              disabled={!canComment}
+            >
               Add
             </button>
           </div>

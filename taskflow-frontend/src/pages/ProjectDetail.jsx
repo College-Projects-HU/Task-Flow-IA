@@ -54,6 +54,7 @@ const getStatusTone = (status) => {
 const ProjectDetail = () => {
   const { id } = useParams();
   const { user } = useContext(AuthContext);
+  const canInteractWithTasks = user?.canInteractWithTasks ?? true;
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -229,6 +230,8 @@ const ProjectDetail = () => {
               <button
                 type="button"
                 className="create-btn"
+                disabled={!canInteractWithTasks}
+                style={{ opacity: canInteractWithTasks ? 1 : 0.55, cursor: canInteractWithTasks ? 'pointer' : 'not-allowed' }}
                 onClick={() => setShowCreateModal(true)}
               >
                 Add Task
@@ -239,8 +242,9 @@ const ProjectDetail = () => {
               <div className="project-dropdown-container" style={{ position: "relative" }}>
                 <button
                   type="button"
-                  className="task-action-btn icon-btn"
+                  className="task-action-btn icon-btn permission-locked-control"
                   style={{ padding: '0.85rem', display: 'flex', alignItems: 'center' }}
+                  disabled={!canInteractWithTasks}
                   onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'project-actions' ? null : 'project-actions'); }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -254,7 +258,7 @@ const ProjectDetail = () => {
                   <div className="task-dropdown-menu">
                     <button
                       type="button"
-                      className="dropdown-item"
+                      className="dropdown-item permission-locked-control"
                       onClick={(e) => { e.stopPropagation(); setActiveDropdown(null); navigate(`/projects/${id}/stats`); }}
                     >
                       View Statistics
@@ -262,8 +266,9 @@ const ProjectDetail = () => {
                     {user?.role === "ProjectManager" && (
                       <button
                         type="button"
-                        className="dropdown-item danger"
+                        className="dropdown-item danger permission-locked-control"
                         onClick={(e) => { e.stopPropagation(); setActiveDropdown(null); handleDeleteProject(); }}
+                        disabled={!canInteractWithTasks}
                       >
                         Delete Project
                       </button>
@@ -347,8 +352,9 @@ const ProjectDetail = () => {
                   <div className="project-task-actions">
                     <button
                       type="button"
-                      className="task-action-btn"
+                      className="task-action-btn permission-locked-control"
                       onClick={(e) => { e.stopPropagation(); navigate(`/tasks/${task.id}/attachments`); }}
+                      disabled={!canInteractWithTasks}
                     >
                       Files
                     </button>
@@ -356,8 +362,9 @@ const ProjectDetail = () => {
                       <div className="task-dropdown-container" style={{ position: "relative" }}>
                         <button
                           type="button"
-                          className="task-action-btn icon-btn"
+                          className="task-action-btn icon-btn permission-locked-control"
                           style={{ padding: '0.55rem', display: 'flex', alignItems: 'center' }}
+                          disabled={!canInteractWithTasks}
                           onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === task.id ? null : task.id); }}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -371,15 +378,17 @@ const ProjectDetail = () => {
                           <div className="task-dropdown-menu">
                             <button
                               type="button"
-                              className="dropdown-item"
+                              className="dropdown-item permission-locked-control"
                               onClick={(e) => { e.stopPropagation(); setActiveDropdown(null); handleEditClick(task); }}
+                              disabled={!canInteractWithTasks}
                             >
                               Edit
                             </button>
                             <button
                               type="button"
-                              className="dropdown-item danger"
+                              className="dropdown-item danger permission-locked-control"
                               onClick={(e) => { e.stopPropagation(); setActiveDropdown(null); handleDeleteTask(task.id); }}
+                              disabled={!canInteractWithTasks}
                             >
                               Delete
                             </button>

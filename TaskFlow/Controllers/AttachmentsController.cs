@@ -22,10 +22,15 @@ namespace TaskFlow.Controllers
         public async Task<IActionResult> Upload(int id, IFormFile file)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
-
-            var result = await _attachmentService.Upload(id, userId, file);
-
-            return Ok(result);
+            try
+            {
+                var result = await _attachmentService.Upload(id, userId, file);
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
         }
 
         [HttpGet("tasks/{id:int}/attachments")]

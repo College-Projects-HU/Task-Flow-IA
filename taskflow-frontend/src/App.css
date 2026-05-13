@@ -93,3 +93,18 @@
   transform: scale(1.07);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
 }
+
+.permission-locked-control:disabled,
+.permission-locked-control[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.permission-locked-control:disabled:hover,
+.permission-locked-control[aria-disabled="true"]:hover {
+  cursor: not-allowed;
+}
+
+.permission-locked-panel {
+  opacity: 0.55;
+}

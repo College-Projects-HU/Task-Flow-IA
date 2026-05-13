@@ -19,6 +19,13 @@ namespace TaskFlow.Services
             if (file == null || file.Length == 0)
                 throw new Exception("No file uploaded");
 
+            var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+                throw new Exception("User not found");
+
+            if (!user.CanAttachFiles)
+                throw new UnauthorizedAccessException("You do not have permission to upload attachments.");
+
             var task = await _context.Tasks.FindAsync(taskId);
             if (task == null)
                 throw new Exception("Task not found");

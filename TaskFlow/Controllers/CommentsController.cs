@@ -42,10 +42,15 @@ namespace TaskFlow.Controllers
         public async Task<IActionResult> AddComment(int id, CreateCommentDto dto)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
-
-            var comment = await _commentService.AddComment(id, userId, dto.Content);
-
-            return Ok(comment);
+            try
+            {
+                var comment = await _commentService.AddComment(id, userId, dto.Content);
+                return Ok(comment);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
         }
 
         // DELETE /api/comments/{id}

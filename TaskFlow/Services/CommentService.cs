@@ -25,6 +25,17 @@ namespace TaskFlow.Services
 
         public async Task<Comment> AddComment(int taskId, int userId, string content)
         {
+            var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+            {
+                throw new Exception("User not found");
+            }
+
+            if (!user.CanComment)
+            {
+                throw new UnauthorizedAccessException("You do not have permission to add comments.");
+            }
+
             var comment = new Comment
             {
                 TaskId = taskId,

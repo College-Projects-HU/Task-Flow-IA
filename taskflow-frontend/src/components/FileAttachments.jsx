@@ -1,15 +1,18 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useContext } from "react";
 import {
   uploadAttachment,
   getAttachments,
   deleteAttachment,
 } from "../services/api";
+import { AuthContext } from "../context/AuthContext";
 
 const FileAttachments = ({ taskId }) => {
   const [files, setFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [progress, setProgress] = useState(0);
   const fileInputRef = useRef(null);
+  const { user } = useContext(AuthContext);
+  const canAttachFiles = user?.canAttachFiles ?? true;
 
   // 📥 GET files
   const fetchFiles = async () => {
@@ -75,17 +78,18 @@ const FileAttachments = ({ taskId }) => {
         <h3>Attachments</h3>
       </div>
 
-      <div className="taskdetail-upload-row">
+      <div className={`taskdetail-upload-row ${!canAttachFiles ? "permission-locked-panel" : ""}`}>
         <input
           type="file"
-          className="taskdetail-file-input"
+          className="taskdetail-file-input permission-locked-control"
           ref={fileInputRef}
+          disabled={!canAttachFiles}
           onChange={(e) => setSelectedFile(e.target.files[0])}
         />
 
         <button
           type="button"
-          className="taskdetail-upload-btn"
+          className="taskdetail-upload-btn permission-locked-control"
           onClick={handleUpload}
           disabled={!selectedFile || progress > 0}
           style={{

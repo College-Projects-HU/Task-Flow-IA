@@ -52,6 +52,19 @@ export const AuthProvider = ({ children }) => {
         "";
 
       const profilePictureUrl = payload.ProfilePictureUrl || null;
+      const parsePermission = (key, fallback = true) => {
+        const value = payload[key] ?? payload[key?.toLowerCase?.()] ?? payload[key?.replace?.(/^./, (char) => char.toLowerCase())];
+
+        if (value === undefined || value === null || value === "") {
+          return fallback;
+        }
+
+        if (typeof value === "boolean") {
+          return value;
+        }
+
+        return String(value).toLowerCase() === "true";
+      };
 
       setUser({
         id: Number(id),
@@ -59,6 +72,9 @@ export const AuthProvider = ({ children }) => {
         role,
         name: name.toLowerCase().trim(), // 🔥 normalize
         profilePictureUrl,
+        canInteractWithTasks: parsePermission("CanInteractWithTasks", true),
+        canComment: parsePermission("CanComment", true),
+        canAttachFiles: parsePermission("CanAttachFiles", true),
       });
     } catch (error) {
       console.error("Invalid token", error);

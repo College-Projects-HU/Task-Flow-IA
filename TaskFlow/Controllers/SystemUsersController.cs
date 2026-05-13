@@ -26,7 +26,7 @@ namespace TaskFlow.Controllers
         public async Task<IActionResult> GetSystemUsers()
         {
             var users = await _context.Users
-                .Where(u => u.IsApproved || u.IsRejected)
+                .Where(u => u.IsApproved && !u.IsRejected)
                 .Select(u => new SystemUserDto
                 {
                     Id = u.Id,
@@ -35,7 +35,10 @@ namespace TaskFlow.Controllers
                     Role = u.Role,
                     CreatedAt = u.CreatedAt,
                     IsApproved = u.IsApproved,
-                    IsRejected = u.IsRejected
+                    IsRejected = u.IsRejected,
+                    CanInteractWithTasks = u.CanInteractWithTasks,
+                    CanComment = u.CanComment,
+                    CanAttachFiles = u.CanAttachFiles
                 })
                 .ToListAsync();
 
@@ -72,6 +75,41 @@ namespace TaskFlow.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Role updated successfully.", isApproved = targetUser.IsApproved });
+        }
+
+        [HttpPut("{id}/permissions")]
+        public async Task<IActionResult> UpdatePermissions(int id, [FromBody] UpdateUserPermissionsDto dto)
+        {
+            var loggedInUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(loggedInUserIdStr, out int loggedInUserId))
+            {
+                return Unauthorized(new { message = "Invalid user token." });
+            }
+
+            if (id == loggedInUserId)
+            {
+                return BadRequest(new { message = "You cannot change your own permissions." });
+            }
+
+            var targetUser = await _context.Users.FindAsync(id);
+            if (targetUser == null)
+            {
+                return NotFound(new { message = "User not found." });
+            }
+
+            targetUser.CanInteractWithTasks = dto.CanInteractWithTasks;
+            targetUser.CanComment = dto.CanComment;
+            targetUser.CanAttachFiles = dto.CanAttachFiles;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Permissions updated successfully.",
+                canInteractWithTasks = targetUser.CanInteractWithTasks,
+                canComment = targetUser.CanComment,
+                canAttachFiles = targetUser.CanAttachFiles
+            });
         }
 
         [HttpDelete("{id}")]
