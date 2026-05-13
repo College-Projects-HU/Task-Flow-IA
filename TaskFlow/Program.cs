@@ -62,8 +62,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactPolicy", policy =>
     {
-        var allowedOrigins = builder.Configuration["AllowedOrigins"]?.Split(",") ?? new[] { "http://localhost:5173" };
-        policy.WithOrigins(allowedOrigins)
+        policy.SetIsOriginAllowed(origin => true) // ✅ Fix: Allows any frontend (Vercel/Localhost) to connect and still allows credentials
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -117,6 +116,9 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 
 var app = builder.Build();
 
+// الترتيب هنا "حياة أو موت" للمشروع - CORS MUST come first!
+app.UseCors("ReactPolicy");
+
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 // إعدادات الـ Middleware
@@ -128,16 +130,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// الترتيب هنا "حياة أو موت" للمشروع:
-app.UseCors("ReactPolicy");
-
-app.UseHttpsRedirection();
-
 app.UseStaticFiles(new StaticFileOptions
 {
     ServeUnknownFileTypes = true
 });
-app.UseCors("ReactPolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();
