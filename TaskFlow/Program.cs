@@ -71,6 +71,7 @@ builder.Services.AddCors(options =>
 
 // 4. تسجيل الخدمات (Dependency Injection)
 builder.Services.AddScoped<ProjectService>();
+builder.Services.AddScoped<TaskService>();
 builder.Services.AddControllers();
 builder.Services.AddScoped<CommentService>();
 
