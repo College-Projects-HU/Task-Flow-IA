@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import DashboardLayout from "../components/DashboardLayout";
 import { AuthContext } from "../context/AuthContext";
-import { getProfile, updateProfile } from "../services/api";
+import { getProfile, updateProfile, API_ORIGIN } from "../services/api";
 import "./ProfilePage.css";
 
 function ProfilePage() {
@@ -108,7 +108,7 @@ function ProfilePage() {
             <div 
               className="profile-avatar"
               style={{
-                backgroundImage: profileData.profilePictureUrl ? `url(http://localhost:5218${profileData.profilePictureUrl})` : 'none',
+                backgroundImage: profileData.profilePictureUrl ? `url(${API_ORIGIN}${profileData.profilePictureUrl})` : 'none',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center'
               }}
