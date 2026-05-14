@@ -68,16 +68,6 @@ namespace TaskFlow.Controllers
                 user.FullName = dto.FullName;
             }
 
-            if (!string.IsNullOrWhiteSpace(dto.Email))
-            {
-                // Simple check if email is taken
-                if (await _context.Users.AnyAsync(u => u.Email == dto.Email && u.Id != userId))
-                {
-                    return BadRequest(new { message = "Email is already taken." });
-                }
-                user.Email = dto.Email;
-            }
-
             if (dto.ProfilePicture != null)
             {
                 var uploadsFolder = Path.Combine(_env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "uploads", "profiles");
@@ -118,7 +108,6 @@ namespace TaskFlow.Controllers
     public class UpdateProfileDto
     {
         public string? FullName { get; set; }
-        public string? Email { get; set; }
         public Microsoft.AspNetCore.Http.IFormFile? ProfilePicture { get; set; }
     }
 }

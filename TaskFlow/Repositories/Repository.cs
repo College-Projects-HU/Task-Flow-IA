@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using TaskFlow.Data;
 using TaskFlow.Interfaces;
 
-namespace TaskFlow.Data
+namespace TaskFlow.Repositories
 {
     public class Repository<T> : IRepository<T> where T : class
     {
