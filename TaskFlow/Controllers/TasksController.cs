@@ -400,11 +400,12 @@ namespace TaskFlow.Controllers
                 return StatusCode(403, new { message = "You do not have permission to interact with tasks." });
             }
 
-            // 🚨 مهم جدًا
             if (!Enum.IsDefined(typeof(TaskFlow.Models.TaskStatus), dto.Status))
                 return BadRequest(new { message = "Invalid status value." });
 
-            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
+            // بنجيب التاسك ومعاه بيانات المشروع عشان نوصل للـ ProjectManagerId
+            var task = await _context.Tasks
+                .FirstOrDefaultAsync(t => t.Id == id);
 
             if (task == null)
                 return NotFound(new { message = "Task not found." });
@@ -412,13 +413,25 @@ namespace TaskFlow.Controllers
             var userId = GetCurrentUserId();
             var role = User.FindFirstValue(ClaimTypes.Role);
 
-            // Member يغير بس التاسك بتاعه
+            // التحقق إن الـ Member بيعدل حاجته بس
             if (role == "Member" && task.AssignedMemberId != userId)
                 return StatusCode(403, new { message = "You can only update your own tasks." });
 
+            // تحديث الحالة
             task.Status = dto.Status;
-
             await _context.SaveChangesAsync();
+
+            // --- 🔔 الجزء الجديد: إرسال إشعار للـ Project Manager ---
+            var project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == task.ProjectId);
+            
+            if (project != null && project.ProjectManagerId > 0)
+            {
+                await _notificationService.SendTaskNotification(
+                    project.ProjectManagerId.ToString(),
+                    $"Member {currentUser.FullName} updated task '{task.Title}' status to {dto.Status}",
+                    task.Id
+                );
+            }
 
             return Ok(new { message = "Task status updated successfully." });
         }
