@@ -9,11 +9,16 @@ namespace TaskFlow.Services
     public class CommentService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IRepository<Comment> _commentRepo;
         private readonly INotificationService _notificationService; // إضافة السيرفس
 
-        public CommentService(ApplicationDbContext context, INotificationService notificationService)
+        public CommentService(
+            ApplicationDbContext context,
+            IRepository<Comment> commentRepo,
+            INotificationService notificationService)
         {
             _context = context;
+            _commentRepo = commentRepo;
             _notificationService = notificationService;
         }
 
@@ -41,8 +46,8 @@ namespace TaskFlow.Services
             Content = content
         } ;
 
-        _context.Comments.Add(comment);
-        await _context.SaveChangesAsync();
+        await _commentRepo.AddAsync(comment);
+        await _commentRepo.SaveChangesAsync();
 
         // --- إرسال الإشعارات (بدون Include) ---
         var task = await _context.Tasks.AsNoTracking().FirstOrDefaultAsync(t => t.Id == taskId);
@@ -79,7 +84,7 @@ namespace TaskFlow.Services
 
         public async Task<bool> DeleteComment(int commentId, int userId)
         {
-            var comment = await _context.Comments.FindAsync(commentId);
+            var comment = await _commentRepo.GetByIdAsync(commentId);
             var user = await _context.Users.FindAsync(userId);
 
             if (comment == null || user == null)
@@ -91,8 +96,8 @@ namespace TaskFlow.Services
             if (!isOwner && !isAdminOrPM)
                 return false;
 
-            _context.Comments.Remove(comment);
-            await _context.SaveChangesAsync();
+            _commentRepo.Remove(comment);
+            await _commentRepo.SaveChangesAsync();
 
             return true;
         }

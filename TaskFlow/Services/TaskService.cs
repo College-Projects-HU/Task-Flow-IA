@@ -9,11 +9,16 @@ namespace TaskFlow.Services
     public class TaskService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IRepository<TaskItem> _taskRepo;
         private readonly INotificationService _notificationService;
 
-        public TaskService(ApplicationDbContext context, INotificationService notificationService)
+        public TaskService(
+            ApplicationDbContext context,
+            IRepository<TaskItem> taskRepo,
+            INotificationService notificationService)
         {
             _context = context;
+            _taskRepo = taskRepo;
             _notificationService = notificationService;
         }
 
@@ -174,8 +179,8 @@ namespace TaskFlow.Services
                 Status = dto.Status
             };
 
-            _context.Tasks.Add(task);
-            await _context.SaveChangesAsync();
+            await _taskRepo.AddAsync(task);
+            await _taskRepo.SaveChangesAsync();
 
             if (task.AssignedMemberId.HasValue)
             {
@@ -256,7 +261,7 @@ namespace TaskFlow.Services
                 task.Status = dto.Status.Value;
             }
 
-            await _context.SaveChangesAsync();
+            await _taskRepo.SaveChangesAsync();
 
             if (dto.AssignedUserId.HasValue && previousAssignedUserId != dto.AssignedUserId.Value)
             {
@@ -286,47 +291,57 @@ namespace TaskFlow.Services
                 throw new KeyNotFoundException("Project not found or you do not have access to it.");
             }
 
-            _context.Tasks.Remove(task);
-            await _context.SaveChangesAsync();
+            _taskRepo.Remove(task);
+            await _taskRepo.SaveChangesAsync();
         }
 
         public async Task UpdateTaskStatusAsync(int taskId, int currentUserId, string? role, TaskFlow.Models.TaskStatus newStatus)
-{
-    var currentUser = await GetCurrentUserAsync(currentUserId);
-    EnsureCanInteractWithTasks(currentUser);
+        {
+            var currentUser = await GetCurrentUserAsync(currentUserId);
+            EnsureCanInteractWithTasks(currentUser);
 
-    if (!Enum.IsDefined(typeof(TaskFlow.Models.TaskStatus), newStatus))
-    {
-        throw new ArgumentException("Invalid status value.");
-    }
+            if (!Enum.IsDefined(typeof(TaskFlow.Models.TaskStatus), newStatus))
+            {
+                throw new ArgumentException("Invalid status value.");
+            }
 
-    var task = await _context.Tasks
-        .Include(t => t.Project)
-        .FirstOrDefaultAsync(t => t.Id == taskId);
+            // Excellent job adding the Include here
+            var task = await _context.Tasks
+                .Include(t => t.Project)
+                .FirstOrDefaultAsync(t => t.Id == taskId);
 
-    if (task == null)
-    {
-        throw new KeyNotFoundException("Task not found.");
-    }
+            if (task == null)
+            {
+                throw new KeyNotFoundException("Task not found.");
+            }
 
-    if (role == "Member" && task.AssignedMemberId != currentUserId)
-    {
-        throw new UnauthorizedAccessException("You can only update your own tasks.");
-    }
+            if (role == "Member" && task.AssignedMemberId != currentUserId)
+            {
+                throw new UnauthorizedAccessException("You can only update your own tasks.");
+            }
 
-    var oldStatus = task.Status;
-    task.Status = newStatus;
-    await _context.SaveChangesAsync();
+            // ---> RESTORED THIS FROM YOUR ORIGINAL CODE <---
+            if ((int)newStatus < (int)task.Status)
+            {
+                throw new ArgumentException("Invalid status transition.");
+            }
 
-    if (role == "Member" && task.Project != null && task.Project.ProjectManagerId > 0)
-    {
-        await _notificationService.SendTaskNotification(
-            task.Project.ProjectManagerId.ToString(),
-            $"Task Update: Member '{currentUser?.FullName}' changed task '{task.Title}' status from {oldStatus} to {newStatus}.",
-            task.Id
-        );
-    }
-}
+            var oldStatus = task.Status;
+            task.Status = newStatus;
+
+            // Save using the repository pattern (works because DI shares the DbContext instance)
+            await _taskRepo.SaveChangesAsync(); 
+
+            // Send the notification
+            if (role == "Member" && task.Project != null && task.Project.ProjectManagerId > 0)
+            {
+                await _notificationService.SendTaskNotification(
+                    task.Project.ProjectManagerId.ToString(),
+                    $"Task Update: Member '{currentUser?.FullName}' changed task '{task.Title}' status from {oldStatus} to {newStatus}.",
+                    task.Id
+                );
+            }
+        }
 
         public async Task AssignTaskAsync(int taskId, int currentUserId, int assignedUserId)
         {
@@ -351,7 +366,7 @@ namespace TaskFlow.Services
             }
 
             task.AssignedMemberId = assignedUserId;
-            await _context.SaveChangesAsync();
+            await _taskRepo.SaveChangesAsync();
 
             await _notificationService.SendTaskNotification(
                 assignedUserId.ToString(),
