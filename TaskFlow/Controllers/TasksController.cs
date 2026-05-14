@@ -157,44 +157,6 @@ namespace TaskFlow.Controllers
             {
                 return MapException(ex);
             }
-<<<<<<< HEAD
-
-            if (!Enum.IsDefined(typeof(TaskFlow.Models.TaskStatus), dto.Status))
-                return BadRequest(new { message = "Invalid status value." });
-
-            // بنجيب التاسك ومعاه بيانات المشروع عشان نوصل للـ ProjectManagerId
-            var task = await _context.Tasks
-                .FirstOrDefaultAsync(t => t.Id == id);
-
-            if (task == null)
-                return NotFound(new { message = "Task not found." });
-
-            var userId = GetCurrentUserId();
-            var role = User.FindFirstValue(ClaimTypes.Role);
-
-            // التحقق إن الـ Member بيعدل حاجته بس
-            if (role == "Member" && task.AssignedMemberId != userId)
-                return StatusCode(403, new { message = "You can only update your own tasks." });
-
-            // تحديث الحالة
-            task.Status = dto.Status;
-            await _context.SaveChangesAsync();
-
-            // --- 🔔 الجزء الجديد: إرسال إشعار للـ Project Manager ---
-            var project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == task.ProjectId);
-            
-            if (project != null && project.ProjectManagerId > 0)
-            {
-                await _notificationService.SendTaskNotification(
-                    project.ProjectManagerId.ToString(),
-                    $"Member {currentUser.FullName} updated task '{task.Title}' status to {dto.Status}",
-                    task.Id
-                );
-            }
-
-            return Ok(new { message = "Task status updated successfully." });
-=======
->>>>>>> e4ade8ec28ef32e59c2417d7fd87d3038beb8e4b
         }
 
         [HttpPatch("tasks/{id:int}/assign")]
