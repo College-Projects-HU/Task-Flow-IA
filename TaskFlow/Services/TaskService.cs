@@ -9,11 +9,16 @@ namespace TaskFlow.Services
     public class TaskService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IRepository<TaskItem> _taskRepo;
         private readonly INotificationService _notificationService;
 
-        public TaskService(ApplicationDbContext context, INotificationService notificationService)
+        public TaskService(
+            ApplicationDbContext context,
+            IRepository<TaskItem> taskRepo,
+            INotificationService notificationService)
         {
             _context = context;
+            _taskRepo = taskRepo;
             _notificationService = notificationService;
         }
 
@@ -174,8 +179,8 @@ namespace TaskFlow.Services
                 Status = dto.Status
             };
 
-            _context.Tasks.Add(task);
-            await _context.SaveChangesAsync();
+            await _taskRepo.AddAsync(task);
+            await _taskRepo.SaveChangesAsync();
 
             if (task.AssignedMemberId.HasValue)
             {
@@ -256,7 +261,7 @@ namespace TaskFlow.Services
                 task.Status = dto.Status.Value;
             }
 
-            await _context.SaveChangesAsync();
+            await _taskRepo.SaveChangesAsync();
 
             if (dto.AssignedUserId.HasValue && previousAssignedUserId != dto.AssignedUserId.Value)
             {
@@ -286,8 +291,8 @@ namespace TaskFlow.Services
                 throw new KeyNotFoundException("Project not found or you do not have access to it.");
             }
 
-            _context.Tasks.Remove(task);
-            await _context.SaveChangesAsync();
+            _taskRepo.Remove(task);
+            await _taskRepo.SaveChangesAsync();
         }
 
         public async Task UpdateTaskStatusAsync(int taskId, int currentUserId, string? role, TaskFlow.Models.TaskStatus newStatus)
@@ -317,7 +322,7 @@ namespace TaskFlow.Services
             }
 
             task.Status = newStatus;
-            await _context.SaveChangesAsync();
+            await _taskRepo.SaveChangesAsync();
         }
 
         public async Task AssignTaskAsync(int taskId, int currentUserId, int assignedUserId)
@@ -343,7 +348,7 @@ namespace TaskFlow.Services
             }
 
             task.AssignedMemberId = assignedUserId;
-            await _context.SaveChangesAsync();
+            await _taskRepo.SaveChangesAsync();
 
             await _notificationService.SendTaskNotification(
                 assignedUserId.ToString(),
