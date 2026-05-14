@@ -1,11 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using TaskFlow.Data;
 using TaskFlow.DTOs;
-using TaskFlow.Models;
-using TaskFlow.Interfaces;
+using TaskFlow.Services;
 
 namespace TaskFlow.Controllers
 {
@@ -13,392 +10,154 @@ namespace TaskFlow.Controllers
     [Route("api")]
     public class TasksController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-        private readonly INotificationService _notificationService;
+        private readonly TaskService _taskService;
 
-        public TasksController(ApplicationDbContext context, INotificationService notificationService) // 3. الحقن في الـ Constructor
+        public TasksController(TaskService taskService)
         {
-            _context = context;
-            _notificationService = notificationService;
+            _taskService = taskService;
         }
 
         [HttpGet("projects/{projectId:int}/tasks")]
-        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetProjectTasks(int projectId)
+        public async Task<IActionResult> GetProjectTasks(int projectId)
         {
-            var projectExists = await _context.Projects.AnyAsync(p => p.Id == projectId);
-            if (!projectExists)
+            try
             {
-                return NotFound(new { message = "Project not found." });
+                var tasks = await _taskService.GetProjectTasksAsync(projectId);
+                return Ok(tasks);
             }
-
-            var assignedUsers = await _context.Users
-                .Select(u => new { u.Id, u.FullName })
-                .ToDictionaryAsync(u => u.Id, u => u.FullName);
-
-            var tasks = await _context.Tasks
-                .Where(t => t.ProjectId == projectId)
-                .Select(t => new {
-                    Task = t,
-                    CommentsCount = _context.Comments.Count(c => c.TaskId == t.Id),
-                    AttachmentsCount = _context.Attachments.Count(a => a.TaskId == t.Id)
-                })
-                .OrderBy(t => t.Task.DueDate)
-                .ToListAsync();
-
-            var response = tasks
-                .Select(item => {
-                    var dto = MapTaskResponse(item.Task, assignedUsers);
-                    dto.CommentsCount = item.CommentsCount;
-                    dto.AttachmentsCount = item.AttachmentsCount;
-                    return dto;
-                })
-                .ToList();
-
-            return Ok(response);
+            catch (Exception ex)
+            {
+                return MapException(ex);
+            }
         }
 
         [HttpGet("tasks")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetAllTasks()
+        public async Task<IActionResult> GetAllTasks()
         {
-            var userId = GetCurrentUserId();
-            var userRole = User.FindFirstValue(ClaimTypes.Role);
+            var currentUserId = GetCurrentUserId();
+            var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
 
-            var assignedUsers = await _context.Users
-                .Select(u => new { u.Id, u.FullName })
-                .ToDictionaryAsync(u => u.Id, u => u.FullName);
-
-            var projects = await _context.Projects
-                .Select(p => new { p.Id, p.Name })
-                .ToDictionaryAsync(p => p.Id, p => p.Name);
-
-            IQueryable<TaskItem> tasksQuery = _context.Tasks;
-
-            // Role-based filtering
-            if (userRole == "Member")
+            if (!currentUserId.HasValue || string.IsNullOrWhiteSpace(currentUserRole))
             {
-                // Members see only tasks assigned to them
-                tasksQuery = tasksQuery.Where(t => t.AssignedMemberId == userId);
+                return Unauthorized(new { message = "Invalid user token." });
             }
-            else if (userRole == "ProjectManager")
+
+            try
             {
-                // ProjectManagers see all tasks in their projects
-                var pmProjects = await _context.Projects
-                    .Where(p => p.ProjectManagerId == userId)
-                    .Select(p => p.Id)
-                    .ToListAsync();
-
-                tasksQuery = tasksQuery.Where(t => pmProjects.Contains(t.ProjectId));
+                var tasks = await _taskService.GetAllTasksAsync(currentUserId.Value, currentUserRole);
+                return Ok(tasks);
             }
-            // Admins see all tasks (no filter)
-
-            var tasks = await tasksQuery
-                .Select(t => new {
-                    Task = t,
-                    CommentsCount = _context.Comments.Count(c => c.TaskId == t.Id),
-                    AttachmentsCount = _context.Attachments.Count(a => a.TaskId == t.Id)
-                })
-                .OrderBy(t => t.Task.DueDate)
-                .ToListAsync();
-
-            var response = tasks
-                .Select(item => {
-                    var dto = MapTaskResponse(
-                        item.Task,
-                        assignedUsers,
-                        projects.ContainsKey(item.Task.ProjectId) ? projects[item.Task.ProjectId] : "Unknown Project"
-                    );
-                    dto.CommentsCount = item.CommentsCount;
-                    dto.AttachmentsCount = item.AttachmentsCount;
-                    return dto;
-                })
-                .ToList();
-
-            return Ok(response);
+            catch (Exception ex)
+            {
+                return MapException(ex);
+            }
         }
 
         [HttpGet("tasks/{id:int}")]
-        public async Task<ActionResult<TaskResponseDto>> GetTaskById(int id)
+        public async Task<IActionResult> GetTaskById(int id)
         {
-            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
-            if (task == null)
+            try
             {
-                return NotFound(new { message = "Task not found." });
+                var task = await _taskService.GetTaskByIdAsync(id);
+                return Ok(task);
             }
-
-            var assignedUsers = await _context.Users
-                .Select(u => new { u.Id, u.FullName })
-                .ToDictionaryAsync(u => u.Id, u => u.FullName);
-
-            var comments = await (from comment in _context.Comments
-                                  join user in _context.Users on comment.UserId equals user.Id into commentUsers
-                                  from user in commentUsers.DefaultIfEmpty()
-                                  where comment.TaskId == id
-                                  orderby comment.CreatedAt
-                                  select new TaskCommentResponseDto
-                                  {
-                                      Id = comment.Id,
-                                      Content = comment.Content,
-                                      UserId = comment.UserId,
-                                      UserName = user != null ? user.FullName : string.Empty,
-                                      CreatedAt = comment.CreatedAt
-                                  })
-                .ToListAsync();
-
-            var attachments = await _context.Attachments
-                .Where(a => a.TaskId == id)
-                .Select(a => new TaskAttachmentResponseDto
-                {
-                    Id = a.Id,
-                    FilePath = a.FilePath
-                })
-                .ToListAsync();
-
-            var response = MapTaskResponse(task, assignedUsers, comments: comments, attachments: attachments);
-            response.CommentsCount = comments.Count;
-            response.AttachmentsCount = attachments.Count;
-            return Ok(response);
+            catch (Exception ex)
+            {
+                return MapException(ex);
+            }
         }
 
         [HttpPost("projects/{projectId:int}/tasks")]
         [Authorize(Roles = "ProjectManager")]
-        public async Task<ActionResult<TaskResponseDto>> CreateTask(int projectId, [FromBody] TaskCreateRequestDto dto)
+        public async Task<IActionResult> CreateTask(int projectId, [FromBody] TaskCreateRequestDto dto)
         {
-            var currentUser = await GetCurrentUserAsync();
-            if (currentUser == null)
+            var currentUserId = GetCurrentUserId();
+            if (!currentUserId.HasValue)
             {
                 return Unauthorized(new { message = "Invalid user token." });
             }
 
-            if (!currentUser.CanInteractWithTasks)
+            try
             {
-                return StatusCode(403, new { message = "You do not have permission to interact with tasks." });
+                var task = await _taskService.CreateTaskAsync(projectId, currentUserId.Value, dto);
+                return CreatedAtAction(nameof(GetTaskById), new { id = task.Id }, task);
             }
-
-            var project = await GetOwnedProjectAsync(projectId);
-            if (project == null)
+            catch (Exception ex)
             {
-                return NotFound(new { message = "Project not found or you do not have access to it." });
+                return MapException(ex);
             }
-
-            if (dto.AssignedUserId.HasValue)
-            {
-                var assignedUserExists = await _context.Users.AnyAsync(u => u.Id == dto.AssignedUserId.Value);
-                if (!assignedUserExists)
-                {
-                    return BadRequest(new { message = "Assigned user not found." });
-                }
-            }
-
-            // Validation: task due date cannot be after project end date
-            if (dto.DueDate.HasValue && project.EndDate.HasValue && dto.DueDate.Value > project.EndDate.Value)
-            {
-                return BadRequest(new { message = "Task due date cannot be after project end date." });
-            }
-
-            var task = new TaskItem
-            {
-                Title = dto.Title,
-                Description = dto.Description ?? string.Empty,
-                CreatedByUserId = GetCurrentUserId() ?? 0,
-                AssignedMemberId = dto.AssignedUserId ?? 0,
-                ProjectId = projectId,
-                Priority = dto.Priority.ToString(),
-                DueDate = dto.DueDate ?? DateTime.UtcNow,
-                Status = dto.Status
-            };
-
-            _context.Tasks.Add(task);
-            await _context.SaveChangesAsync();
-
-            if (task.AssignedMemberId.HasValue && task.AssignedMemberId.Value > 0)
-            {
-                await _notificationService.SendTaskNotification(
-                    task.AssignedMemberId.Value.ToString(),
-                    $"You have been assigned a new task: {task.Title}",
-                    task.Id
-                );
-            }
-
-            var assignedUsers = await _context.Users
-                .Select(u => new { u.Id, u.FullName })
-                .ToDictionaryAsync(u => u.Id, u => u.FullName);
-
-            var response = MapTaskResponse(task, assignedUsers);
-
-            return CreatedAtAction(nameof(GetTaskById), new { id = task.Id }, response);
         }
 
         [HttpPut("tasks/{id:int}")]
         [Authorize(Roles = "ProjectManager")]
-        public async Task<ActionResult<TaskResponseDto>> UpdateTask(int id, [FromBody] TaskUpdateRequestDto dto)
+        public async Task<IActionResult> UpdateTask(int id, [FromBody] TaskUpdateRequestDto dto)
         {
-            var currentUser = await GetCurrentUserAsync();
-            if (currentUser == null)
+            var currentUserId = GetCurrentUserId();
+            if (!currentUserId.HasValue)
             {
                 return Unauthorized(new { message = "Invalid user token." });
             }
 
-            if (!currentUser.CanInteractWithTasks)
+            try
             {
-                return StatusCode(403, new { message = "You do not have permission to interact with tasks." });
+                var task = await _taskService.UpdateTaskAsync(id, currentUserId.Value, dto);
+                return Ok(task);
             }
-
-            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
-            if (task == null)
+            catch (Exception ex)
             {
-                return NotFound(new { message = "Task not found." });
+                return MapException(ex);
             }
-
-            var project = await GetOwnedProjectAsync(task.ProjectId);
-            if (project == null)
-            {
-                return NotFound(new { message = "Project not found or you do not have access to it." });
-            }
-
-            var previousAssignedUserId = task.AssignedMemberId;
-
-            if (dto.AssignedUserId.HasValue)
-            {
-                var assignedUserExists = await _context.Users.AnyAsync(u => u.Id == dto.AssignedUserId.Value);
-                if (!assignedUserExists)
-                {
-                    return BadRequest(new { message = "Assigned user not found." });
-                }
-
-                task.AssignedMemberId = dto.AssignedUserId.Value;
-            }
-
-            if (dto.Title != null)
-            {
-                task.Title = dto.Title;
-            }
-
-            if (dto.Description != null)
-            {
-                task.Description = dto.Description;
-            }
-
-            if (dto.Priority.HasValue)
-            {
-                task.Priority = dto.Priority.Value.ToString();
-            }
-
-            if (dto.DueDate.HasValue)
-            {
-                // Ensure due date does not exceed project end date
-                if (project.EndDate.HasValue && dto.DueDate.Value > project.EndDate.Value)
-                {
-                    return BadRequest(new { message = "Task due date cannot be after project end date." });
-                }
-
-                task.DueDate = dto.DueDate.Value;
-            }
-
-            if (dto.Status.HasValue)
-            {
-                task.Status = dto.Status.Value;
-            }
-
-            await _context.SaveChangesAsync();
-
-            if (dto.AssignedUserId.HasValue &&
-                dto.AssignedUserId.Value > 0 &&
-                previousAssignedUserId != dto.AssignedUserId.Value)
-            {
-                await _notificationService.SendTaskNotification(
-                    dto.AssignedUserId.Value.ToString(),
-                    $"You have been assigned a new task: {task.Title}",
-                    task.Id
-                );
-            }
-
-            var assignedUsers = await _context.Users
-                .Select(u => new { u.Id, u.FullName })
-                .ToDictionaryAsync(u => u.Id, u => u.FullName);
-
-            var comments = await (from comment in _context.Comments
-                                  join user in _context.Users on comment.UserId equals user.Id into commentUsers
-                                  from user in commentUsers.DefaultIfEmpty()
-                                  where comment.TaskId == id
-                                  orderby comment.CreatedAt
-                                  select new TaskCommentResponseDto
-                                  {
-                                      Id = comment.Id,
-                                      Content = comment.Content,
-                                      UserId = comment.UserId,
-                                      UserName = user != null ? user.FullName : string.Empty,
-                                      CreatedAt = comment.CreatedAt
-                                  })
-                .ToListAsync();
-
-            var attachments = await _context.Attachments
-                .Where(a => a.TaskId == id)
-                .Select(a => new TaskAttachmentResponseDto
-                {
-                    Id = a.Id,
-                    FilePath = a.FilePath
-                })
-                .ToListAsync();
-
-            var response = MapTaskResponse(task, assignedUsers, comments: comments, attachments: attachments);
-            response.CommentsCount = comments.Count;
-            response.AttachmentsCount = attachments.Count;
-            return Ok(response);
         }
 
         [HttpDelete("tasks/{id:int}")]
         [Authorize(Roles = "ProjectManager")]
         public async Task<IActionResult> DeleteTask(int id)
         {
-            var currentUser = await GetCurrentUserAsync();
-            if (currentUser == null)
+            var currentUserId = GetCurrentUserId();
+            if (!currentUserId.HasValue)
             {
                 return Unauthorized(new { message = "Invalid user token." });
             }
 
-            if (!currentUser.CanInteractWithTasks)
+            try
             {
-                return StatusCode(403, new { message = "You do not have permission to interact with tasks." });
+                await _taskService.DeleteTaskAsync(id, currentUserId.Value);
+                return NoContent();
             }
-
-            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id);
-            if (task == null)
+            catch (Exception ex)
             {
-                return NotFound(new { message = "Task not found." });
+                return MapException(ex);
             }
-
-            var project = await GetOwnedProjectAsync(task.ProjectId);
-            if (project == null)
-            {
-                return NotFound(new { message = "Project not found or you do not have access to it." });
-            }
-
-            _context.Tasks.Remove(task);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
         }
-        // ==============================
-        // M3: Update Task Status
-        // ==============================
+
         [HttpPatch("tasks/{id:int}/status")]
         [Authorize]
         public async Task<IActionResult> UpdateTaskStatus(int id, [FromBody] UpdateTaskStatusDto dto)
         {
             if (dto == null)
+            {
                 return BadRequest(new { message = "Invalid request." });
+            }
 
-            var currentUser = await GetCurrentUserAsync();
-            if (currentUser == null)
+            var currentUserId = GetCurrentUserId();
+            var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
+
+            if (!currentUserId.HasValue || string.IsNullOrWhiteSpace(currentUserRole))
             {
                 return Unauthorized(new { message = "Invalid user token." });
             }
 
-            if (!currentUser.CanInteractWithTasks)
+            try
             {
-                return StatusCode(403, new { message = "You do not have permission to interact with tasks." });
+                await _taskService.UpdateTaskStatusAsync(id, currentUserId.Value, currentUserRole, dto.Status);
+                return Ok(new { message = "Task status updated successfully." });
             }
+            catch (Exception ex)
+            {
+                return MapException(ex);
+            }
+<<<<<<< HEAD
 
             if (!Enum.IsDefined(typeof(TaskFlow.Models.TaskStatus), dto.Status))
                 return BadRequest(new { message = "Invalid status value." });
@@ -434,119 +193,57 @@ namespace TaskFlow.Controllers
             }
 
             return Ok(new { message = "Task status updated successfully." });
+=======
+>>>>>>> e4ade8ec28ef32e59c2417d7fd87d3038beb8e4b
         }
 
-        // ==============================
-        // M3: Assign Task
-        // ==============================
         [HttpPatch("tasks/{id:int}/assign")]
         [Authorize(Roles = "ProjectManager")]
         public async Task<IActionResult> AssignTask(int id, [FromBody] AssignTaskDto dto)
         {
             if (dto == null)
+            {
                 return BadRequest(new { message = "Invalid request body." });
+            }
 
-            var currentUser = await GetCurrentUserAsync();
-            if (currentUser == null)
+            var currentUserId = GetCurrentUserId();
+            if (!currentUserId.HasValue)
             {
                 return Unauthorized(new { message = "Invalid user token." });
             }
 
-            if (!currentUser.CanInteractWithTasks)
+            try
             {
-                return StatusCode(403, new { message = "You do not have permission to interact with tasks." });
+                await _taskService.AssignTaskAsync(id, currentUserId.Value, dto.UserId);
+                return Ok(new { message = "Task assigned successfully." });
             }
-
-            var task = await _context.Tasks
-                .FirstOrDefaultAsync(t => t.Id == id);
-
-            if (task == null)
-                return NotFound(new { message = "Task not found." });
-
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == dto.UserId);
-
-            if (user == null)
-                return BadRequest(new { message = "User not found." });
-
-            // 🚨 الشرط المهم
-            if (user.Role != Role.Member)
-                return BadRequest(new { message = "You can only assign tasks to Members." });
-
-            task.AssignedMemberId = dto.UserId;
-
-            await _context.SaveChangesAsync();
-
-            // 4. إرسال الإشعار هنا
-            await _notificationService.SendTaskNotification(
-                dto.UserId.ToString(),
-                $"You have been assigned a new task: {task.Title}",
-                task.Id
-            );
-
-            return Ok(new { message = "Task assigned successfully." });
+            catch (Exception ex)
+            {
+                return MapException(ex);
+            }
         }
-        // ==============================
-        // M3: Get Project Members
-        // ==============================
+
         [HttpGet("projects/{id:int}/members")]
         [Authorize]
         public async Task<IActionResult> GetProjectMembers(int id)
         {
-            var projectExists = await _context.Projects.AnyAsync(p => p.Id == id);
-            if (!projectExists)
-                return NotFound(new { message = "Project not found." });
-
-            var userRole = User.FindFirstValue(ClaimTypes.Role);
-
-            IQueryable<User> membersQuery = _context.Users.Where(u => u.Role == Role.Member);
-
-            if (userRole == "ProjectManager")
-            {
-                // ProjectManagers can assign any member to tasks
-                // Return all members
-            }
-            else if (userRole == "Member")
-            {
-                // Members can only see themselves (for their own tasks)
-                var userId = GetCurrentUserId();
-                membersQuery = membersQuery.Where(u => u.Id == userId);
-            }
-            // Admins can see all members
-
-            var members = await membersQuery
-                .Select(u => new
-                {
-                    u.Id,
-                    u.FullName,
-                    u.Email
-                })
-                .ToListAsync();
-
-            return Ok(members);
-        }
-
-        private async Task<Project?> GetOwnedProjectAsync(int projectId)
-        {
             var currentUserId = GetCurrentUserId();
-            if (currentUserId == null)
+            var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
+
+            if (!currentUserId.HasValue || string.IsNullOrWhiteSpace(currentUserRole))
             {
-                return null;
+                return Unauthorized(new { message = "Invalid user token." });
             }
 
-            return await _context.Projects.FirstOrDefaultAsync(p =>
-                p.Id == projectId && p.ProjectManagerId == currentUserId.Value);
-        }
-
-        private async Task<User?> GetCurrentUserAsync()
-        {
-            var currentUserId = GetCurrentUserId();
-            if (!currentUserId.HasValue)
+            try
             {
-                return null;
+                var members = await _taskService.GetProjectMembersAsync(id, currentUserId.Value, currentUserRole);
+                return Ok(members);
             }
-
-            return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == currentUserId.Value);
+            catch (Exception ex)
+            {
+                return MapException(ex);
+            }
         }
 
         private int? GetCurrentUserId()
@@ -555,45 +252,15 @@ namespace TaskFlow.Controllers
             return int.TryParse(userIdValue, out var userId) ? userId : null;
         }
 
-        private static TaskResponseDto MapTaskResponse(
-            TaskItem task,
-            IReadOnlyDictionary<int, string> assignedUsers,
-            string projectName = "",
-            List<TaskCommentResponseDto>? comments = null,
-            List<TaskAttachmentResponseDto>? attachments = null)
+        private IActionResult MapException(Exception exception)
         {
-            string? assignedUserName = string.Empty;
-
-            if (task.AssignedMemberId.HasValue && task.AssignedMemberId > 0)
+            return exception switch
             {
-                assignedUsers.TryGetValue(task.AssignedMemberId.Value, out assignedUserName);
-            }
-            return new TaskResponseDto
-            {
-                Id = task.Id,
-                Title = task.Title,
-                Description = task.Description,
-                CreatedByUserId = task.CreatedByUserId,
-                CreatedByUserName = assignedUsers.TryGetValue(task.CreatedByUserId, out var ownerName)
-                    ? ownerName ?? string.Empty
-                    : string.Empty,
-                AssignedUserId = task.AssignedMemberId > 0 ? task.AssignedMemberId : null,
-                AssignedUserName = assignedUserName ?? string.Empty,
-                ProjectId = task.ProjectId,
-                ProjectName = projectName,
-                Priority = ParsePriority(task.Priority),
-                DueDate = task.DueDate,
-                Status = task.Status,
-                Comments = comments ?? new List<TaskCommentResponseDto>(),
-                Attachments = attachments ?? new List<TaskAttachmentResponseDto>()
+                UnauthorizedAccessException => StatusCode(403, new { message = exception.Message }),
+                KeyNotFoundException => NotFound(new { message = exception.Message }),
+                ArgumentException => BadRequest(new { message = exception.Message }),
+                _ => StatusCode(500, new { message = "An unexpected error occurred." })
             };
-        }
-
-        private static TaskPriority ParsePriority(string priority)
-        {
-            return Enum.TryParse<TaskPriority>(priority, true, out var parsedPriority)
-                ? parsedPriority
-                : TaskPriority.Low;
         }
     }
 }
