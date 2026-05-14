@@ -305,7 +305,11 @@ namespace TaskFlow.Services
                 throw new ArgumentException("Invalid status value.");
             }
 
-            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == taskId);
+            // Excellent job adding the Include here
+            var task = await _context.Tasks
+                .Include(t => t.Project)
+                .FirstOrDefaultAsync(t => t.Id == taskId);
+
             if (task == null)
             {
                 throw new KeyNotFoundException("Task not found.");
@@ -316,13 +320,27 @@ namespace TaskFlow.Services
                 throw new UnauthorizedAccessException("You can only update your own tasks.");
             }
 
+            // ---> RESTORED THIS FROM YOUR ORIGINAL CODE <---
             if ((int)newStatus < (int)task.Status)
             {
                 throw new ArgumentException("Invalid status transition.");
             }
 
+            var oldStatus = task.Status;
             task.Status = newStatus;
-            await _taskRepo.SaveChangesAsync();
+
+            // Save using the repository pattern (works because DI shares the DbContext instance)
+            await _taskRepo.SaveChangesAsync(); 
+
+            // Send the notification
+            if (role == "Member" && task.Project != null && task.Project.ProjectManagerId > 0)
+            {
+                await _notificationService.SendTaskNotification(
+                    task.Project.ProjectManagerId.ToString(),
+                    $"Task Update: Member '{currentUser?.FullName}' changed task '{task.Title}' status from {oldStatus} to {newStatus}.",
+                    task.Id
+                );
+            }
         }
 
         public async Task AssignTaskAsync(int taskId, int currentUserId, int assignedUserId)
