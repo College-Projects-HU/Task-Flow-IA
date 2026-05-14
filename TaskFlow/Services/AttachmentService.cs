@@ -2,16 +2,20 @@ using Microsoft.EntityFrameworkCore;
 using TaskFlow.Data;
 using TaskFlow.Models;
 using TaskFlow.DTOs;
+using TaskFlow.Interfaces;
+using Microsoft.AspNetCore.Http;
 
 namespace TaskFlow.Services
 {
     public class AttachmentService
     {
         private readonly ApplicationDbContext _context;
+        private readonly INotificationService _notificationService;
 
-        public AttachmentService(ApplicationDbContext context)
+        public AttachmentService(ApplicationDbContext context, INotificationService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
         }
 
         public async Task<AttachmentDto> Upload(int taskId, int userId, IFormFile file)
@@ -26,7 +30,7 @@ namespace TaskFlow.Services
             if (!user.CanAttachFiles)
                 throw new UnauthorizedAccessException("You do not have permission to upload attachments.");
 
-            var task = await _context.Tasks.FindAsync(taskId);
+            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == taskId);
             if (task == null)
                 throw new Exception("Task not found");
 
@@ -41,17 +45,14 @@ namespace TaskFlow.Services
             if (!Directory.Exists(folderPath))
                 Directory.CreateDirectory(folderPath);
 
-            // 📌 unique file name
             var uniqueFileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
             var fullPath = Path.Combine(folderPath, uniqueFileName);
 
-            // 💾 save file
             using (var stream = new FileStream(fullPath, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
             }
 
-            // 💾 save DB (IMPORTANT FIX)
             var attachment = new Attachment
             {
                 TaskId = taskId,
@@ -60,15 +61,44 @@ namespace TaskFlow.Services
                 FilePath = $"/uploads/{taskId}/{uniqueFileName}",
                 FileSize = file.Length,
                 UploadedAt = DateTime.UtcNow,
-                Task = null! // 🔥 مهم لتفادي EF tracking issues
+                Task = null!
             };
 
             _context.Attachments.Add(attachment);
-
             var result = await _context.SaveChangesAsync();
 
             if (result == 0)
                 throw new Exception("File was not saved in DB");
+
+            try
+            {
+                var projectManagerId = await _context.Projects
+                    .Where(p => p.Id == task.ProjectId)
+                    .Select(p => p.ProjectManagerId)
+                    .FirstOrDefaultAsync();
+
+                if (projectManagerId > 0 && userId != projectManagerId)
+                {
+                    await _notificationService.SendTaskNotification(
+                        projectManagerId.ToString(),
+                        $"{user.FullName} uploaded a file to task '{task.Title}': {file.FileName}",
+                        taskId
+                    );
+                }
+
+                if (task.AssignedMemberId.HasValue && userId != task.AssignedMemberId)
+                {
+                    await _notificationService.SendTaskNotification(
+                        task.AssignedMemberId.Value.ToString(),
+                        $"{user.FullName} added an attachment to your task: {file.FileName}",
+                        taskId
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Notification failed: {ex.Message}");
+            }
 
             return new AttachmentDto
             {

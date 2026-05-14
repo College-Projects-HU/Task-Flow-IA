@@ -2,16 +2,19 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using TaskFlow.Data;
 using TaskFlow.Models;
+using TaskFlow.Interfaces;
 
 namespace TaskFlow.Services
 {
     public class CommentService
     {
         private readonly ApplicationDbContext _context;
+        private readonly INotificationService _notificationService; // إضافة السيرفس
 
-        public CommentService(ApplicationDbContext context)
+        public CommentService(ApplicationDbContext context, INotificationService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
         }
 
         public async Task<List<Comment>> GetCommentsByTask(int taskId)
@@ -24,30 +27,55 @@ namespace TaskFlow.Services
         }
 
         public async Task<Comment> AddComment(int taskId, int userId, string content)
+    {
+        var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null) throw new Exception("User not found");
+
+        if (!user.CanComment)
+            throw new UnauthorizedAccessException("You do not have permission to add comments.");
+
+        var comment = new Comment
         {
-            var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
-            if (user == null)
+            TaskId = taskId,
+            UserId = userId,
+            Content = content
+        } ;
+
+        _context.Comments.Add(comment);
+        await _context.SaveChangesAsync();
+
+        // --- إرسال الإشعارات (بدون Include) ---
+        var task = await _context.Tasks.AsNoTracking().FirstOrDefaultAsync(t => t.Id == taskId);
+        if (task != null)
+        {
+            // 1. إرسال للموظف (لو اللي كاتب مش هو الموظف)
+            if (task.AssignedMemberId.HasValue && userId != task.AssignedMemberId)
             {
-                throw new Exception("User not found");
+                await _notificationService.SendTaskNotification(
+                    task.AssignedMemberId.Value.ToString(),
+                    $"{user.FullName} commented on your task: {content}",
+                    taskId
+                );
             }
 
-            if (!user.CanComment)
+            // 2. إرسال للمدير (لو اللي كاتب مش هو المدير)
+            var projectManagerId = await _context.Projects
+                .Where(p => p.Id == task.ProjectId)
+                .Select(p => p.ProjectManagerId)
+                .FirstOrDefaultAsync();
+
+            if (projectManagerId > 0 && userId != projectManagerId)
             {
-                throw new UnauthorizedAccessException("You do not have permission to add comments.");
+                await _notificationService.SendTaskNotification(
+                    projectManagerId.ToString(),
+                    $"{user.FullName} commented on task '{task.Title}'",
+                    taskId
+                );
             }
-
-            var comment = new Comment
-            {
-                TaskId = taskId,
-                UserId = userId,
-                Content = content
-            };
-
-            _context.Comments.Add(comment);
-            await _context.SaveChangesAsync();
-
-            return comment;
         }
+
+        return comment;
+    }
 
         public async Task<bool> DeleteComment(int commentId, int userId)
         {

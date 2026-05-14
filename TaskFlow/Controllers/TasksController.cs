@@ -72,11 +72,6 @@ namespace TaskFlow.Controllers
         [Authorize(Roles = "ProjectManager")]
         public async Task<IActionResult> CreateTask(int projectId, [FromBody] TaskCreateRequestDto dto)
         {
-            if (dto == null)
-            {
-                return BadRequest(new { message = "Invalid request body." });
-            }
-
             var currentUserId = GetCurrentUserId();
             if (!currentUserId.HasValue)
             {
@@ -98,11 +93,6 @@ namespace TaskFlow.Controllers
         [Authorize(Roles = "ProjectManager")]
         public async Task<IActionResult> UpdateTask(int id, [FromBody] TaskUpdateRequestDto dto)
         {
-            if (dto == null)
-            {
-                return BadRequest(new { message = "Invalid request body." });
-            }
-
             var currentUserId = GetCurrentUserId();
             if (!currentUserId.HasValue)
             {
