@@ -291,34 +291,42 @@ namespace TaskFlow.Services
         }
 
         public async Task UpdateTaskStatusAsync(int taskId, int currentUserId, string? role, TaskFlow.Models.TaskStatus newStatus)
-        {
-            var currentUser = await GetCurrentUserAsync(currentUserId);
-            EnsureCanInteractWithTasks(currentUser);
+{
+    var currentUser = await GetCurrentUserAsync(currentUserId);
+    EnsureCanInteractWithTasks(currentUser);
 
-            if (!Enum.IsDefined(typeof(TaskFlow.Models.TaskStatus), newStatus))
-            {
-                throw new ArgumentException("Invalid status value.");
-            }
+    if (!Enum.IsDefined(typeof(TaskFlow.Models.TaskStatus), newStatus))
+    {
+        throw new ArgumentException("Invalid status value.");
+    }
 
-            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == taskId);
-            if (task == null)
-            {
-                throw new KeyNotFoundException("Task not found.");
-            }
+    var task = await _context.Tasks
+        .Include(t => t.Project)
+        .FirstOrDefaultAsync(t => t.Id == taskId);
 
-            if (role == "Member" && task.AssignedMemberId != currentUserId)
-            {
-                throw new UnauthorizedAccessException("You can only update your own tasks.");
-            }
+    if (task == null)
+    {
+        throw new KeyNotFoundException("Task not found.");
+    }
 
-            if ((int)newStatus < (int)task.Status)
-            {
-                throw new ArgumentException("Invalid status transition.");
-            }
+    if (role == "Member" && task.AssignedMemberId != currentUserId)
+    {
+        throw new UnauthorizedAccessException("You can only update your own tasks.");
+    }
 
-            task.Status = newStatus;
-            await _context.SaveChangesAsync();
-        }
+    var oldStatus = task.Status;
+    task.Status = newStatus;
+    await _context.SaveChangesAsync();
+
+    if (role == "Member" && task.Project != null && task.Project.ProjectManagerId > 0)
+    {
+        await _notificationService.SendTaskNotification(
+            task.Project.ProjectManagerId.ToString(),
+            $"Task Update: Member '{currentUser?.FullName}' changed task '{task.Title}' status from {oldStatus} to {newStatus}.",
+            task.Id
+        );
+    }
+}
 
         public async Task AssignTaskAsync(int taskId, int currentUserId, int assignedUserId)
         {
