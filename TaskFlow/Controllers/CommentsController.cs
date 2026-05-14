@@ -9,6 +9,7 @@ namespace TaskFlow.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class CommentsController : ControllerBase
     {
         private readonly CommentService _commentService;

@@ -7,6 +7,7 @@ using TaskFlow.Services;
 namespace TaskFlow.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api")]
     public class TasksController : ControllerBase
     {
