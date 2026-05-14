@@ -2,16 +2,25 @@ using Microsoft.EntityFrameworkCore;
 using TaskFlow.Data;
 using TaskFlow.Models;
 using TaskFlow.DTOs;
+using TaskFlow.Interfaces;
+using Microsoft.AspNetCore.Http;
 
 namespace TaskFlow.Services
 {
     public class AttachmentService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IRepository<Attachment> _attachmentRepo;
+        private readonly INotificationService _notificationService;
 
-        public AttachmentService(ApplicationDbContext context)
+        public AttachmentService(
+            ApplicationDbContext context,
+            IRepository<Attachment> attachmentRepo,
+            INotificationService notificationService)
         {
             _context = context;
+            _attachmentRepo = attachmentRepo;
+            _notificationService = notificationService;
         }
 
         public async Task<AttachmentDto> Upload(int taskId, int userId, IFormFile file)
@@ -19,7 +28,14 @@ namespace TaskFlow.Services
             if (file == null || file.Length == 0)
                 throw new Exception("No file uploaded");
 
-            var task = await _context.Tasks.FindAsync(taskId);
+            var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+                throw new Exception("User not found");
+
+            if (!user.CanAttachFiles)
+                throw new UnauthorizedAccessException("You do not have permission to upload attachments.");
+
+            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == taskId);
             if (task == null)
                 throw new Exception("Task not found");
 
@@ -34,17 +50,14 @@ namespace TaskFlow.Services
             if (!Directory.Exists(folderPath))
                 Directory.CreateDirectory(folderPath);
 
-            // 📌 unique file name
             var uniqueFileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
             var fullPath = Path.Combine(folderPath, uniqueFileName);
 
-            // 💾 save file
             using (var stream = new FileStream(fullPath, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
             }
 
-            // 💾 save DB (IMPORTANT FIX)
             var attachment = new Attachment
             {
                 TaskId = taskId,
@@ -53,15 +66,44 @@ namespace TaskFlow.Services
                 FilePath = $"/uploads/{taskId}/{uniqueFileName}",
                 FileSize = file.Length,
                 UploadedAt = DateTime.UtcNow,
-                Task = null! // 🔥 مهم لتفادي EF tracking issues
+                Task = null!
             };
 
-            _context.Attachments.Add(attachment);
-
-            var result = await _context.SaveChangesAsync();
+            await _attachmentRepo.AddAsync(attachment);
+            var result = await _attachmentRepo.SaveChangesAsync();
 
             if (result == 0)
                 throw new Exception("File was not saved in DB");
+
+            try
+            {
+                var projectManagerId = await _context.Projects
+                    .Where(p => p.Id == task.ProjectId)
+                    .Select(p => p.ProjectManagerId)
+                    .FirstOrDefaultAsync();
+
+                if (projectManagerId > 0 && userId != projectManagerId)
+                {
+                    await _notificationService.SendTaskNotification(
+                        projectManagerId.ToString(),
+                        $"{user.FullName} uploaded a file to task '{task.Title}': {file.FileName}",
+                        taskId
+                    );
+                }
+
+                if (task.AssignedMemberId.HasValue && userId != task.AssignedMemberId)
+                {
+                    await _notificationService.SendTaskNotification(
+                        task.AssignedMemberId.Value.ToString(),
+                        $"{user.FullName} added an attachment to your task: {file.FileName}",
+                        taskId
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Notification failed: {ex.Message}");
+            }
 
             return new AttachmentDto
             {
@@ -88,7 +130,7 @@ namespace TaskFlow.Services
 
         public async Task Delete(int id, int userId, string userRole)
         {
-            var attachment = await _context.Attachments.FindAsync(id);
+            var attachment = await _attachmentRepo.GetByIdAsync(id);
             if (attachment == null)
                 throw new Exception("Attachment not found");
 
@@ -101,8 +143,8 @@ namespace TaskFlow.Services
                 File.Delete(fullPath);
             }
 
-            _context.Attachments.Remove(attachment);
-            await _context.SaveChangesAsync();
+            _attachmentRepo.Remove(attachment);
+            await _attachmentRepo.SaveChangesAsync();
         }
     }
 }

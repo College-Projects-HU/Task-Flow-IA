@@ -80,7 +80,7 @@ namespace TaskFlow.Controllers
 
         [HttpPost]
         [Authorize(Roles = "ProjectManager")]
-        public IActionResult Create([FromBody] CreateProjectDto dto)
+        public async Task<IActionResult> Create([FromBody] CreateProjectDto dto)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
 
@@ -105,13 +105,13 @@ namespace TaskFlow.Controllers
                 EndDate = dto.EndDate
             };
 
-            _service.Create(project);
+            await _service.Create(project);
 
             return Ok(project);
         }
         [HttpPut("{id}")]
         [Authorize(Roles = "ProjectManager")]
-        public IActionResult Update(int id, [FromBody] CreateProjectDto dto)
+        public async Task<IActionResult> Update(int id, [FromBody] CreateProjectDto dto)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
             var role = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
@@ -138,7 +138,7 @@ namespace TaskFlow.Controllers
             project.StartDate = dto.StartDate;
             project.EndDate = dto.EndDate;
 
-            _service.Update(project);
+            await _service.Update(project);
 
             return Ok(project);
         }

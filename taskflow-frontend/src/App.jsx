@@ -24,7 +24,14 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/taskboard" element={<TaskBoard />} />
+        <Route
+          path="/taskboard"
+          element={
+            <PrivateRoute>
+              <TaskBoard />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/dashboard"
           element={
@@ -43,10 +50,38 @@ function App() {
           }
         />
 
-        <Route path="/Projects" element={<ProjectsPage />} />
-        <Route path="/projects/:id" element={<ProjectDetail />} />
-        <Route path="/tasks/:taskId/attachments" element={<TaskAttachments />} />
-        <Route path="/tasks/:taskId" element={<TaskDetailPage />} />
+        <Route
+          path="/Projects"
+          element={
+            <PrivateRoute>
+              <ProjectsPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/projects/:id"
+          element={
+            <PrivateRoute>
+              <ProjectDetail />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/tasks/:taskId/attachments"
+          element={
+            <PrivateRoute>
+              <TaskAttachments />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/tasks/:taskId"
+          element={
+            <PrivateRoute>
+              <TaskDetailPage />
+            </PrivateRoute>
+          }
+        />
 
         <Route
           path="/system-users"

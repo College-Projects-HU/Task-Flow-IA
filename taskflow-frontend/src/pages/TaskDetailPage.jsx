@@ -56,6 +56,8 @@ function TaskDetailPage({ taskId: propTaskId, onClose }) {
   const isModal = Boolean(propTaskId);
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
+  const canInteractWithTasks = user?.canInteractWithTasks ?? true;
+  const canChangeStatus = canInteractWithTasks && user?.role !== "Admin";
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [statusUpdating, setStatusUpdating] = useState(false);
@@ -210,25 +212,27 @@ function TaskDetailPage({ taskId: propTaskId, onClose }) {
 
               <div className="taskdetail-meta-row">
                 <span>Status</span>
-                <div className="taskdetail-status-cell" style={{ position: "relative" }}>
-                  <div 
-                    className={`taskdetail-chip ${getStatusTone(task.status)}`}
-                    onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
-                    style={{ 
-                      cursor: "pointer", 
-                      display: "flex", 
-                      justifyContent: "space-between", 
+                  <div className="taskdetail-status-cell" style={{ position: "relative" }}>
+                  <button
+                    type="button"
+                    className={`taskdetail-chip ${getStatusTone(task.status)} permission-locked-control`}
+                    onClick={canChangeStatus ? () => setStatusDropdownOpen(!statusDropdownOpen) : undefined}
+                    disabled={!canChangeStatus}
+                    style={{
+                      cursor: canChangeStatus ? "pointer" : "not-allowed",
+                      display: "flex",
+                      justifyContent: "space-between",
                       alignItems: "center",
-                      padding: "0 1rem", 
+                      padding: "0 1rem",
                       width: "140px",
                       userSelect: "none"
                     }}
                   >
                     <span>{task.status === "InProgress" ? "In Progress" : task.status}</span>
                     <span style={{ fontSize: "0.75rem", opacity: 0.8 }}>▼</span>
-                  </div>
+                  </button>
 
-                  {statusDropdownOpen && (
+                  {statusDropdownOpen && canChangeStatus && (
                     <div style={{
                       position: "absolute",
                       top: "100%",
@@ -246,9 +250,10 @@ function TaskDetailPage({ taskId: propTaskId, onClose }) {
                         <div
                           key={s}
                           onClick={() => handleStatusChange(s)}
+                          aria-disabled={!canChangeStatus}
                           style={{
                             padding: "0.6rem 1rem",
-                            cursor: "pointer",
+                            cursor: canChangeStatus ? "pointer" : "not-allowed",
                             fontSize: "0.9rem",
                             fontWeight: "600",
                             color: task.status === s ? "#17325c" : "#64748b",
@@ -265,25 +270,25 @@ function TaskDetailPage({ taskId: propTaskId, onClose }) {
                     </div>
                   )}
 
-                  {nextStatus && (
+                  {nextStatus && canChangeStatus && (
                     <button
                       type="button"
-                      className="taskdetail-advance-btn"
+                      className="taskdetail-advance-btn permission-locked-control"
                       onClick={handleAdvanceStatus}
-                      disabled={statusUpdating}
+                      disabled={statusUpdating || !canChangeStatus}
                       title={`Move to ${nextStatus === "InProgress" ? "In Progress" : nextStatus}`}
-                      style={{ 
-                        padding: "0", 
+                      style={{
+                        padding: "0",
                         width: "32px",
                         height: "32px",
-                        display: "flex", 
-                        alignItems: "center", 
+                        display: "flex",
+                        alignItems: "center",
                         justifyContent: "center",
                         borderRadius: "8px",
                         border: "1px solid #d8e3f3",
                         background: "#fff",
                         color: "#64748b",
-                        cursor: statusUpdating ? "not-allowed" : "pointer"
+                        cursor: statusUpdating || !canChangeStatus ? "not-allowed" : "pointer"
                       }}
                     >
                       {statusUpdating ? "..." : "▶"}

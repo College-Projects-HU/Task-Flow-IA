@@ -68,7 +68,6 @@ function ProfilePage() {
       
       const submitData = new FormData();
       submitData.append("fullName", formData.fullName);
-      submitData.append("email", formData.email);
       if (formData.profilePicture) {
         submitData.append("profilePicture", formData.profilePicture);
       }
@@ -175,10 +174,11 @@ function ProfilePage() {
                   <input
                     type="email"
                     name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="profile-input"
-                    required
+                    value={profileData.email}
+                    className="profile-input profile-input-disabled"
+                    disabled
+                    readOnly
+                    title="Email cannot be changed"
                   />
                 ) : (
                   <p className="profile-value">{profileData.email}</p>

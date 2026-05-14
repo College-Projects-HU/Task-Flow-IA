@@ -371,6 +371,15 @@
   background: #f4f8fc;
 }
 
+.task-action-btn:disabled,
+.taskboard-column-btn:disabled,
+.taskboard-card-manage:disabled,
+.dropdown-item:disabled,
+.create-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .task-action-btn-danger {
   border-color: #f1b4b0;
   background: #fff5f4;

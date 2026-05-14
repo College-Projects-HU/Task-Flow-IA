@@ -7,6 +7,7 @@ using System.Text;
 using TaskFlow.Data;
 using TaskFlow.Interfaces;
 using TaskFlow.Middlewares;
+using TaskFlow.Repositories;
 using TaskFlow.Services;
 using TaskFlow.Hubs;
 
@@ -71,7 +72,9 @@ builder.Services.AddCors(options =>
 });
 
 // 4. تسجيل الخدمات (Dependency Injection)
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<ProjectService>();
+builder.Services.AddScoped<TaskService>();
 builder.Services.AddControllers();
 builder.Services.AddScoped<CommentService>();
 
@@ -147,47 +150,48 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     // Ensure the database is created
     context.Database.Migrate();
-    // Check if the admin user exists
-    if (!context.Users.Any(u => u.Email == "admin@a.a"))
+
+    var authService = scope.ServiceProvider.GetRequiredService<IAuthService>();
+
+    async Task SeedUserAsync(string email, string password, string fullName, TaskFlow.Models.Role role)
     {
-        var authService = scope.ServiceProvider.GetRequiredService<IAuthService>();
-        
-        // 1. Seed Admin
-        await authService.RegisterAsync(new TaskFlow.DTOs.RegisterDto
+        var existingUser = await context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        if (existingUser != null)
         {
-            Email = "admin@a.a",
-            Password = "000000",
-            FullName = "Administrator",
-            Role = TaskFlow.Models.Role.Admin
-        });
-
-        // 2. Seed PM
-        await authService.RegisterAsync(new TaskFlow.DTOs.RegisterDto
-        {
-            Email = "pm@p.p",
-            Password = "000000",
-            FullName = "Project Manager",
-            Role = TaskFlow.Models.Role.ProjectManager
-        });
-
-        // 3. Seed Member
-        await authService.RegisterAsync(new TaskFlow.DTOs.RegisterDto
-        {
-            Email = "m@m.m",
-            Password = "000000",
-            FullName = "Team Member",
-            Role = TaskFlow.Models.Role.Member
-        });
-
-        // By default, RegisterAsync sets IsApproved = false for Admin and PM, so we approve them
-        // Member is auto-approved by default in AuthService, but we can verify it.
-        var addedUsers = context.Users.Where(u => u.Email == "admin@a.a" || u.Email == "pm@p.p").ToList();
-        foreach(var u in addedUsers)
-        {
-            u.IsApproved = true;
+            return;
         }
-        await context.SaveChangesAsync();
+
+        await authService.RegisterAsync(new TaskFlow.DTOs.RegisterDto
+        {
+            Email = email,
+            Password = password,
+            FullName = fullName,
+            Role = role
+        });
     }
+
+    await SeedUserAsync("admin1@a.a", "000000", "Administrator 1", TaskFlow.Models.Role.Admin);
+    await SeedUserAsync("admin2@a.a", "000000", "Administrator 2", TaskFlow.Models.Role.Admin);
+    await SeedUserAsync("admin3@a.a", "000000", "Administrator 3", TaskFlow.Models.Role.Admin);
+
+    await SeedUserAsync("pm1@p.p", "000000", "Project Manager 1", TaskFlow.Models.Role.ProjectManager);
+    await SeedUserAsync("pm2@p.p", "000000", "Project Manager 2", TaskFlow.Models.Role.ProjectManager);
+    await SeedUserAsync("pm3@p.p", "000000", "Project Manager 3", TaskFlow.Models.Role.ProjectManager);
+
+    await SeedUserAsync("m1@m.m", "000000", "Team Member 1", TaskFlow.Models.Role.Member);
+    await SeedUserAsync("m2@m.m", "000000", "Team Member 2", TaskFlow.Models.Role.Member);
+    await SeedUserAsync("m3@m.m", "000000", "Team Member 3", TaskFlow.Models.Role.Member);
+
+    var pendingProjectManagers = await context.Users
+        .Where(u => u.Role == TaskFlow.Models.Role.ProjectManager && !u.IsApproved)
+        .ToListAsync();
+
+    foreach (var user in pendingProjectManagers)
+    {
+        user.IsApproved = true;
+    }
+
+    await context.SaveChangesAsync();
 }
 
 app.Run();
