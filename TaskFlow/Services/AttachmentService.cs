@@ -10,11 +10,16 @@ namespace TaskFlow.Services
     public class AttachmentService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IRepository<Attachment> _attachmentRepo;
         private readonly INotificationService _notificationService;
 
-        public AttachmentService(ApplicationDbContext context, INotificationService notificationService)
+        public AttachmentService(
+            ApplicationDbContext context,
+            IRepository<Attachment> attachmentRepo,
+            INotificationService notificationService)
         {
             _context = context;
+            _attachmentRepo = attachmentRepo;
             _notificationService = notificationService;
         }
 
@@ -64,8 +69,8 @@ namespace TaskFlow.Services
                 Task = null!
             };
 
-            _context.Attachments.Add(attachment);
-            var result = await _context.SaveChangesAsync();
+            await _attachmentRepo.AddAsync(attachment);
+            var result = await _attachmentRepo.SaveChangesAsync();
 
             if (result == 0)
                 throw new Exception("File was not saved in DB");
@@ -125,7 +130,7 @@ namespace TaskFlow.Services
 
         public async Task Delete(int id, int userId, string userRole)
         {
-            var attachment = await _context.Attachments.FindAsync(id);
+            var attachment = await _attachmentRepo.GetByIdAsync(id);
             if (attachment == null)
                 throw new Exception("Attachment not found");
 
@@ -138,8 +143,8 @@ namespace TaskFlow.Services
                 File.Delete(fullPath);
             }
 
-            _context.Attachments.Remove(attachment);
-            await _context.SaveChangesAsync();
+            _attachmentRepo.Remove(attachment);
+            await _attachmentRepo.SaveChangesAsync();
         }
     }
 }

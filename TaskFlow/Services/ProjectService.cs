@@ -1,7 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System;
 using TaskFlow.Data;
 using TaskFlow.DTOs;
+using TaskFlow.Interfaces;
 using TaskFlow.Models;
 
 namespace TaskFlow.Services
@@ -9,16 +10,18 @@ namespace TaskFlow.Services
     public class ProjectService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IRepository<Project> _projectRepo;
 
-        public ProjectService(ApplicationDbContext context)
+        public ProjectService(ApplicationDbContext context, IRepository<Project> projectRepo)
         {
             _context = context;
+            _projectRepo = projectRepo;
         }
 
         public List<Project> GetAll(int userId, string role)
         {
             var query = _context.Projects
-                .Include(p => p.Tasks) 
+                .Include(p => p.Tasks)
                 .Where(p => !p.IsDeleted)
                 .AsQueryable();
 
@@ -37,7 +40,7 @@ namespace TaskFlow.Services
         public Project GetById(int id, int userId, string role)
         {
             var query = _context.Projects
-                .Include(p => p.Tasks) 
+                .Include(p => p.Tasks)
                 .Where(p => p.Id == id && !p.IsDeleted)
                 .AsQueryable();
 
@@ -53,16 +56,16 @@ namespace TaskFlow.Services
             return query.FirstOrDefault()!;
         }
 
-        public Project Create(Project project)
+        public async Task<Project> Create(Project project)
         {
-            _context.Projects.Add(project);
-            _context.SaveChanges();
+            await _projectRepo.AddAsync(project);
+            await _projectRepo.SaveChangesAsync();
             return project;
         }
 
-        public void Update(Project project)
+        public async Task Update(Project project)
         {
-            _context.SaveChanges();
+            await _projectRepo.SaveChangesAsync();
         }
 
         public async Task Delete(Project project)
@@ -85,8 +88,8 @@ namespace TaskFlow.Services
                 }
             }
 
-            _context.Projects.Remove(project);
-            await _context.SaveChangesAsync();
+            _projectRepo.Remove(project);
+            await _projectRepo.SaveChangesAsync();
         }
         public async Task<StatsDto> GetProjectStats(int projectId)
         {
