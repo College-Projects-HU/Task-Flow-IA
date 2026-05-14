@@ -18,7 +18,7 @@ namespace TaskFlow.Controllers
         }
 
         [HttpPost("tasks/{id:int}/attachments")]
-        [Authorize]
+        [Authorize(Roles = "ProjectManager,Member")]
         public async Task<IActionResult> Upload(int id, IFormFile file)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");

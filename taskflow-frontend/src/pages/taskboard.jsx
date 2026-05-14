@@ -86,7 +86,7 @@ const TaskBoard = () => {
     setShowEditModal(true);
   };
 
-  const canCreateTask = canInteractWithTasks && (user?.role === 'ProjectManager' || user?.role === 'Admin');
+  const canCreateTask = canInteractWithTasks && user?.role === 'ProjectManager';
 
   const normalizeTask = (task) => ({
     id: task?.id ?? task?.Id,

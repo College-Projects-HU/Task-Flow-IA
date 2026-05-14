@@ -37,7 +37,7 @@ namespace TaskFlow.Controllers
         }
 
         // POST /api/tasks/{id}/comments
-        [Authorize]
+        [Authorize(Roles = "ProjectManager,Member")]
         [HttpPost("tasks/{id}/comments")]
         public async Task<IActionResult> AddComment(int id, CreateCommentDto dto)
         {

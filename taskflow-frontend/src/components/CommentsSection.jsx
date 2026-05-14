@@ -13,7 +13,7 @@ function CommentsSection({ taskId }) {
 
   const bottomRef = useRef(null);
   const { user } = useContext(AuthContext);
-  const canComment = user?.canComment ?? true;
+  const canComment = (user?.canComment ?? true) && user?.role !== "Admin";
 
   const canDelete = (comment) => {
     return comment.authorId === user?.id || user?.role === 'Admin' || user?.role === 'ProjectManager';

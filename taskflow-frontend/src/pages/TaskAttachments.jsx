@@ -21,7 +21,7 @@ const TaskAttachments = () => {
   const [loading, setLoading] = useState(true);
   const fileInputRef = useRef(null);
   const { user } = useContext(AuthContext);
-  const canAttachFiles = user?.canAttachFiles ?? true;
+  const canAttachFiles = (user?.canAttachFiles ?? true) && user?.role !== "Admin";
 
   const fetchData = async () => {
     try {

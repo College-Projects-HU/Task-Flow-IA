@@ -132,7 +132,7 @@ namespace TaskFlow.Controllers
         }
 
         [HttpPatch("tasks/{id:int}/status")]
-        [Authorize]
+        [Authorize(Roles = "ProjectManager,Member")]
         public async Task<IActionResult> UpdateTaskStatus(int id, [FromBody] UpdateTaskStatusDto dto)
         {
             if (dto == null)

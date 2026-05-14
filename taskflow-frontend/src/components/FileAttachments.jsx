@@ -12,7 +12,7 @@ const FileAttachments = ({ taskId }) => {
   const [progress, setProgress] = useState(0);
   const fileInputRef = useRef(null);
   const { user } = useContext(AuthContext);
-  const canAttachFiles = user?.canAttachFiles ?? true;
+  const canAttachFiles = (user?.canAttachFiles ?? true) && user?.role !== "Admin";
 
   // 📥 GET files
   const fetchFiles = async () => {
